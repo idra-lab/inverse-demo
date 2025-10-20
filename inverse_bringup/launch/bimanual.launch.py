@@ -231,20 +231,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    load_position_broadcaster = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['position_reader', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
-    load_pose_broadcaster = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['pose_reader', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
     on_shutdown = RegisterEventHandler(
         OnShutdown(
             on_shutdown=[
@@ -262,7 +248,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             controller_file_parameter_name,
             description='Controller configuration file',
-            default_value=os.path.join(get_package_share_directory("inverse_bringup"), "config", "controllers.yaml"),
+            default_value=os.path.join(get_package_share_directory("inverse_bringup"), "config", "prisma_controllers.yaml"),
         ),
         DeclareLaunchArgument(
             rviz_file_parameter_name,
@@ -372,7 +358,7 @@ def generate_launch_description():
         TimerAction(
             period=2.0,
             actions=[
-                load_joint_state_broadcaster, load_pose_broadcaster, load_position_broadcaster
+                load_joint_state_broadcaster, 
             ]
         ),
         on_shutdown

@@ -1,0 +1,57 @@
+controller_manager:
+  ros__parameters:
+    thread_priority: 98
+    update_rate: 1000  # Hz
+  
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    right_gravity_compensation:
+      type: gravity_compensation/GravityCompensation
+
+    left_gravity_compensation:
+      type: gravity_compensation/GravityCompensation
+
+/**/right_gravity_compensation:
+  ros__parameters:
+    end_effector_link: "franka1_fr3_link0"
+    ft_sensor_ref_link: "franka1_fr3_hand_tcp" 
+    robot_base_link: "franka1_fr3_link0"
+    compensate_gravity: false 
+    compensate_coriolis: false 
+    command_current_configuration: false
+    command_interfaces:
+      - effort
+    state_interfaces:
+      - position
+      - velocity
+    joints:
+      - franka1_fr3_joint1
+      - franka1_fr3_joint2
+      - franka1_fr3_joint3
+      - franka1_fr3_joint4
+      - franka1_fr3_joint5
+      - franka1_fr3_joint6
+      - franka1_fr3_joint7
+
+/**/left_gravity_compensation:
+  ros__parameters:
+    end_effector_link: "franka2_fr3_link0"
+    ft_sensor_ref_link: "franka2_fr3_hand_tcp" 
+    robot_base_link: "franka2_fr3_link0"
+    compensate_gravity: false 
+    compensate_coriolis: false 
+    command_current_configuration: false
+    command_interfaces:
+      - effort
+    state_interfaces:
+      - position
+      - velocity
+    joints:
+      - franka2_fr3_joint1
+      - franka2_fr3_joint2
+      - franka2_fr3_joint3
+      - franka2_fr3_joint4
+      - franka2_fr3_joint5
+      - franka2_fr3_joint6
+      - franka2_fr3_joint7
