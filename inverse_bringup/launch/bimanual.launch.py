@@ -60,6 +60,7 @@ def robot_gripper_spawner(
 
 def robot_description_dependent_nodes_spawner(
         context: LaunchContext,
+        xacro_file, 
         use_gazebo,
         use_fake_hardware,
         fake_sensor_commands,
@@ -68,9 +69,12 @@ def robot_description_dependent_nodes_spawner(
         self_collisions,
         limit_override,
         left_ip,
-        right_ip
+        right_ip,
+        controller_file,
     ):
 
+    xacro_file_str = context.perform_substitution(xacro_file)
+    controller_file_str = context.perform_substitution(controller_file)
     load_gripper_str = context.perform_substitution(load_gripper)
     gripper_type_str = context.perform_substitution(gripper_type)
 
@@ -85,18 +89,9 @@ def robot_description_dependent_nodes_spawner(
     left_ip_str = context.perform_substitution(left_ip)
     right_ip_str = context.perform_substitution(right_ip)
 
-    franka_xacro_filepath = os.path.join(
-        get_package_share_directory('idra_franka_launch'), 'urdf', 'bimanual.urdf.xacro'
-    )
-
-    franka_controllers = PathJoinSubstitution(
-        [FindPackageShare('franka_mm_control'), 'config', 'basic_controllers.yaml']
-    )
-    franka_controllers_str =  franka_controllers.perform(context)
-
     p = '\t' # Padding
     robot_description = xacro.process_file(
-        franka_xacro_filepath,
+        xacro_file_str,
         mappings = {      
             'hand': load_gripper_str,
             'ee_id': gripper_type_str, 
@@ -111,7 +106,7 @@ def robot_description_dependent_nodes_spawner(
             'franka1_ip': right_ip_str,
             'franka2_ip': left_ip_str,
 
-            'controller_path': franka_controllers_str
+            'controller_path': controller_file_str
         }
     ).toprettyxml(p)
 
@@ -130,7 +125,7 @@ def robot_description_dependent_nodes_spawner(
             package='controller_manager',
             executable='ros2_control_node',
             parameters=[
-                franka_controllers_str,
+                controller_file,
                 {'load_gripper': load_gripper_str}
             ],
             remappings=[
@@ -145,6 +140,9 @@ def robot_description_dependent_nodes_spawner(
 
 
 def generate_launch_description():
+    xacro_file_parameter_name = 'xacro_file'
+    controller_file_parameter_name = 'controller_file'
+    rviz_file_parameter_name = 'rviz_file'
     load_gripper_parameter_name = 'load_gripper'
     gripper_type_parameter_name = 'gripper_type'
 
@@ -172,14 +170,17 @@ def generate_launch_description():
     limit_override = LaunchConfiguration(limit_override_name)
     left_ip = LaunchConfiguration(robot_left_ip_parameter_name)
     right_ip = LaunchConfiguration(robot_right_ip_parameter_name)
-
-    rviz_file = os.path.join(get_package_share_directory('idra_franka_launch'), 'rviz', 'bimanual.rviz')
+    
+    xacro_file = LaunchConfiguration(xacro_file_parameter_name)
+    controller_file = LaunchConfiguration(controller_file_parameter_name)
+    rviz_file = LaunchConfiguration(rviz_file_parameter_name)
 
     joint_state_publisher_sources = ["/joint_states", "franka1/franka_gripper/joint_states", "franka2/franka_gripper/joint_states"]
 
     robot_description_dependent_nodes_spawner_opaque_function = OpaqueFunction(
         function=robot_description_dependent_nodes_spawner,
         args=[
+            xacro_file,
             use_gazebo,
             use_fake_hardware,
             fake_sensor_commands,
@@ -188,7 +189,8 @@ def generate_launch_description():
             enable_self_collisions,
             limit_override,
             left_ip,
-            right_ip
+            right_ip,
+            controller_file,
         ]
     )
 
@@ -243,20 +245,6 @@ def generate_launch_description():
         output='screen'
     )
 
-    controller_left = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['cartesian_impedance_left', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
-    controller_right = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['cartesian_impedance_right', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-
     on_shutdown = RegisterEventHandler(
         OnShutdown(
             on_shutdown=[
@@ -266,6 +254,21 @@ def generate_launch_description():
     )
 
     launch_description = LaunchDescription([
+        DeclareLaunchArgument(
+            xacro_file_parameter_name,
+            description='Open and spawn the robot in Gazebo',
+            default_value=os.path.join(get_package_share_directory("inverse_bringup"), "urdf", "prisma.urdf.xacro"),        
+        ),
+        DeclareLaunchArgument(
+            controller_file_parameter_name,
+            description='Controller configuration file',
+            default_value=os.path.join(get_package_share_directory("inverse_bringup"), "config", "controllers.yaml"),
+        ),
+        DeclareLaunchArgument(
+            rviz_file_parameter_name,
+            description='Rviz configuration',
+            default_value=os.path.join(get_package_share_directory("inverse_bringup"), "rviz", "bimanual.rviz"),
+        ),
         DeclareLaunchArgument(
             use_gazebo_parameter_name,
             description='Open and spawn the robot in Gazebo',
@@ -372,14 +375,6 @@ def generate_launch_description():
                 load_joint_state_broadcaster, load_pose_broadcaster, load_position_broadcaster
             ]
         ),
-
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_joint_state_broadcaster,
-                on_exit=[controller_left, controller_right],
-            )
-        ),
-
         on_shutdown
     ])
 
