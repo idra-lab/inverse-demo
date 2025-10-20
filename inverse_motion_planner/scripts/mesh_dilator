@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+
+import os
+import rclpy
+import pymeshlab
+from rclpy.node import Node
+from magician_msgs.srv import MeshDilation
+
+
+class MeshDilationProviderNode(Node):
+
+    def __init__(self):
+        super().__init__("mesh_dilation_service_provider")
+        topic = '/motion_planner/dilate_mesh'
+        self.get_logger(
+        ).info(f"Exposing magician_msgs/MeshDilation service on topic {topic}")
+        self.srv = self.create_service(MeshDilation, topic, self.on_dilate_mesh)
+        self.inflated_mesh_count = 0
+        self.db = list()
+
+    def on_dilate_mesh(self, req: MeshDilation.Request, res: MeshDilation.Response):
+        self.get_logger().info(
+            f"Received request to inflate mesh {req.mesh_path} "
+            f"by {req.dilation_distance}m"
+        )
+
+        if not os.path.exists(req.mesh_path):
+            self.get_logger().error("Mesh to be dilated does not exists!")
+            res.success = False
+            return res
+
+        # Check if it was already computed
+
+        for entry in self.db:
+            source_file, dil, target = entry
+            is_same_mesh = req.mesh_path == source_file
+            if is_same_mesh and (abs(dil - req.dilation_distance) < 5e-3):
+                self.get_logger().info(
+                    "Inflated mesh was already generating. "
+                    f"Sending reference to previous mesh: {target}"
+                )
+                res.dilated_mesh_path = target
+                res.success = True
+                return res
+
+        self.get_logger().debug("Loading mesh")
+        ms = pymeshlab.MeshSet()
+        ms.load_new_mesh(req.mesh_path)
+
+        target_face_count = 8000
+        self.get_logger(
+        ).info(f"Simplifying the mesh with up to {target_face_count} faces")
+        ms.meshing_decimation_quadric_edge_collapse(
+            targetfacenum=target_face_count,
+            preservenormal=True,
+            preservetopology=True,
+            planarquadric=True
+        )
+
+        self.get_logger().info("Dilating the mesh")
+        ms.generate_resampled_uniform_mesh(
+            cellsize=pymeshlab.PureValue(0.03),
+            offset=pymeshlab.PureValue(req.dilation_distance),
+            mergeclosevert=True,
+            absdist=True
+        )
+
+        target_file = os.path.join(
+            "/tmp", f"inflated-mesh-{self.inflated_mesh_count}.stl"
+        )
+        self.inflated_mesh_count = self.inflated_mesh_count + 1
+        self.get_logger().debug(f"Saving inflated mesh in {target_file}")
+        ms.save_current_mesh(target_file)
+
+        self.db.append((req.mesh_path, req.dilation_distance, target_file))
+
+        res.dilated_mesh_path = target_file
+        res.success = True
+        self.get_logger().info(f"Mesh succesfully inflated")
+        return res
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MeshDilationProviderNode()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
