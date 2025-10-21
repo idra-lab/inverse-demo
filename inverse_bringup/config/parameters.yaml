@@ -19,3 +19,12 @@
     frame_topic_name: "/franka_right/desired_pose"
     base_link: franka1_fr3_link0
     ee_link: franka1_fr3_hand_tcp
+
+/**/skill_learner:
+  ros__parameters:
+    debug_prints: True
+    debug_lib: False
+    integration_timestep: 0.001
+    frame_topic_name: "/franka_right/desired_pose"
+    base_link: franka1_fr3_link0
+    ee_link: franka1_fr3_hand_tcp

@@ -33,46 +33,6 @@ SkillLearner::SkillLearner() : rclcpp::Node("skill_learner") {
     const std::string node_name =
             declare_parameter("node_name", "left_cartesian_impedance_controller");
 
-    _params_getter_cli = create_client<GetParameters>(
-            fmt::format("/{}/get_parameters", node_name),
-            rmw_qos_profile_services_default,
-            _cli_cbk_group
-    );
-    if (!_params_getter_cli->wait_for_service(std::chrono::seconds(3))) {
-        logger().error(
-                "Unable to connect to service {}",
-                _params_getter_cli->get_service_name()
-        );
-        std::terminate();
-    }
-    logger().info(
-            "Reading parameters through service {}",
-            _params_getter_cli->get_service_name()
-    );
-
-    _params_setter_cli = create_client<SetParameters>(
-            fmt::format("/{}/get_parameters", node_name),
-            rmw_qos_profile_services_default,
-            _cli_cbk_group
-    );
-    if (!_params_setter_cli->wait_for_service(std::chrono::seconds(3))) {
-        logger().error(
-                "Unable to connect to service {}",
-                _params_setter_cli->get_service_name()
-        );
-        std::terminate();
-    }
-    logger().info(
-            "Reading parameters through service {}",
-            _params_setter_cli->get_service_name()
-    );
-
-    _stiffness_initial_values = read_stiffness_values();
-    logger().info(
-            "Backed up stiffness values: {}",
-            mdv::eigen_to_str(_stiffness_initial_values)
-    );
-
     auto cbk = [this](const LearnSkill::Request::ConstSharedPtr req,
                       LearnSkill::Response::SharedPtr           resp) {
         on_learn_skill_request(req, resp);
@@ -81,95 +41,6 @@ SkillLearner::SkillLearner() : rclcpp::Node("skill_learner") {
             "learn_skill", cbk, rmw_qos_profile_services_default, _server_cbk_group
     );
 }
-
-SkillLearner::Vec6
-SkillLearner::read_stiffness_values() const {
-    using rcl_interfaces::msg::Parameter;
-
-    if (_params_getter_cli == nullptr || !_params_getter_cli->service_is_ready()) {
-        logger().error("Service is not ready!");
-        return Vec6::Zero();
-    }
-
-    Parameter p;
-    auto      req = std::make_shared<GetParameters::Request>();
-    p.value.type  = 3;
-    req->names    = {
-               "stiffness.trans_x",
-               "stiffness.trans_y",
-               "stiffness.trans_z",
-               "stiffness.rot_x",
-               "stiffness.rot_y",
-               "stiffness.rot_z"};
-
-    auto future = _params_getter_cli->async_send_request(req);
-
-    if (future.wait_for(std::chrono::seconds(2)) != std::future_status::ready) {
-        logger().error("Unable to retrieve parameters in 2 seconds");
-        return Vec6::Zero();
-    }
-
-    const auto resp = future.get();
-
-    Vec6 res;
-    std::transform(
-            resp->values.begin(),
-            resp->values.end(),
-            res.data(),
-            [](const auto& p) -> double { return p.double_value; }
-    );
-    return res;
-}
-
-void
-SkillLearner::gcomp_enable() {
-    set_stiffness_values(Vec6::Zero());
-}
-
-void
-SkillLearner::gcomp_disable() {
-    set_stiffness_values(_stiffness_initial_values);
-}
-
-void
-SkillLearner::set_stiffness_values(const Vec6& stiffness) {
-    auto req = std::make_shared<SetParameters::Request>();
-    using rcl_interfaces::msg::Parameter;
-    Parameter p;
-
-    p.value.type = 3;
-
-    p.name               = "stiffness.trans_x";
-    p.value.double_value = stiffness(0);
-    req->parameters.push_back(p);
-
-    p.name               = "stiffness.trans_y";
-    p.value.double_value = stiffness(1);
-    req->parameters.push_back(p);
-
-    p.name               = "stiffness.trans_z";
-    p.value.double_value = stiffness(2);
-    req->parameters.push_back(p);
-
-    p.name               = "stiffness.rot_x";
-    p.value.double_value = stiffness(3);
-    req->parameters.push_back(p);
-
-    p.name               = "stiffness.rot_y";
-    p.value.double_value = stiffness(4);
-    req->parameters.push_back(p);
-
-    p.name               = "stiffness.rot_z";
-    p.value.double_value = stiffness(5);
-    req->parameters.push_back(p);
-
-    auto future = _params_setter_cli->async_send_request(req);
-    if (future.wait_for(std::chrono::seconds(5)) != std::future_status::ready) {
-        logger().error("Didn't hear a reply in 5 seconds");
-        return;
-    }
-}
-
 void
 SkillLearner::on_learn_skill_request(
         const LearnSkill::Request::ConstSharedPtr& req,
@@ -179,8 +50,10 @@ SkillLearner::on_learn_skill_request(
     path.reserve(10000);
 
     const auto timer =
-            create_wall_timer(std::chrono::milliseconds(10), [this, &path]() {
-                path.push_back(_system->current_ee_position());
+            create_wall_timer(std::chrono::milliseconds(100), [this, &path]() {
+                const auto pose = _system->current_ee_position();
+                path.push_back(pose);
+                logger().info("{}", mdv::ros2::describe(pose));
             });
 
     using std::chrono::high_resolution_clock;
@@ -203,7 +76,6 @@ main(int argc, char* argv[]) {
     auto                                     node = std::make_shared<SkillLearner>();
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(node);
-    node->gcomp_enable();
     executor.spin();
     rclcpp::shutdown();
     return 0;

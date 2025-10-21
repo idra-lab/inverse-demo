@@ -39,7 +39,6 @@ public:
 
     void set_stiffness_values(const Vec6& stiffness);
 
-private:
     mutable mdv::Logger::SharedPtr         _logger     = nullptr;
     std::unique_ptr<Ros2PlannerParameters> _parameters = nullptr;
     std::unique_ptr<Ros2RobotSystem>       _system     = nullptr;
