@@ -19,6 +19,15 @@ public:
             mdv::Logger::SharedPtr logger     = mdv::get_default_logger()
     );
 
+    DiscreteDmpMotion(
+            const Eigen::MatrixXd& dmp_weights, 
+            const Se3Pose& y0,
+            const Se3Pose& g,
+            double                 dt,
+            const DmpParameters&   parameters = DmpParameters(),
+            mdv::Logger::SharedPtr logger     = mdv::get_default_logger()
+    );
+
     static UniquePtr linear_interpolation(
             const Se3Pose&                         from,
             const Se3Pose&                         to,
@@ -34,6 +43,8 @@ public:
     MDV_NODISCARD bool is_completed() const override;
 
     MDV_NODISCARD std::string describe() const override;
+
+    void optimise_tau(const Se3Pose& y0, const Se3Pose& g, double v_max);
 
 private:
     Se3Pose _initial_pose;

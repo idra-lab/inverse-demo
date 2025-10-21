@@ -67,14 +67,25 @@ skill_to_json(const SkillDatabase::SkillData& data) {
     j["initial_pose"] = pose_to_json(data.initial_pose);
     j["final_pose"]   = pose_to_json(data.final_pose);
     j["dmp_weights"]  = matrix_to_json(data.dmp_weights);
+    j["alpha"]        = data.dmp_params.alpha;
+    j["beta"]         = data.dmp_params.beta;
+    j["gamma"]        = data.dmp_params.gamma;
+    j["n_basis"]      = data.dmp_weights.rows();
     return j;
 }
 
 SkillDatabase::SkillData
 json_to_skill(const json& j) {
-    return {.initial_pose = json_to_pose(j["initial_pose"]),
+    return {
+            .initial_pose = json_to_pose(j["initial_pose"]),
             .final_pose   = json_to_pose(j["final_pose"]),
-            .dmp_weights  = json_to_matrix(j["dmp_weights"])};
+            .dmp_weights  = json_to_matrix(j["dmp_weights"]),
+            .dmp_params{
+                        .alpha   = j["alpha"].get<double>(),
+                        .beta    = j["beta"].get<double>(),
+                        .gamma   = j["gamma"].get<double>(),
+                        .n_basis = j["n_basis"].get<std::size_t>()}
+    };
 }
 
 }  // namespace

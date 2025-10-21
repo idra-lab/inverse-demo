@@ -124,7 +124,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
             create_service<ReachPositionSrv>("reach_position", reachposition_lambda);
     assert(_reachposition_server);
     logger().info(
-            "Exposed service on topic {} with type magician_msgs::srv::ReachPosition",
+            "Exposed service on topic {} with type inverse_msgs::srv::ReachPosition",
             _reachposition_server->get_service_name()
     );
 
@@ -139,7 +139,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     assert(_ptp_motion_server);
     logger().info(
             "Exposed service on topic {} with type "
-            "magician_msgs::srv::PointToPointMotion",
+            "inverse_msgs::srv::PointToPointMotion",
             _ptp_motion_server->get_service_name()
     );
 
@@ -153,7 +153,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     assert(_hold_position_server);
     logger().info(
             "Exposed service on topic {} with type "
-            "magician_msgs::srv::HoldPosition",
+            "inverse_msgs::srv::HoldPosition",
             _hold_position_server->get_service_name()
     );
 
@@ -167,7 +167,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     assert(_move_relative_server);
     logger().info(
             "Exposed service on topic {} with type "
-            "magician_msgs::srv::MoveRelative",
+            "inverse_msgs::srv::MoveRelative",
             _move_relative_server->get_service_name()
     );
 

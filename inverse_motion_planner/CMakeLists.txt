@@ -38,8 +38,8 @@ find_and_log_required(geometry_msgs)
 find_and_log_required(inverse_msgs)
 find_and_log_required(tf2_ros)
 
-add_executable(
-    motion_planner
+add_library(
+    motion_planner_commons
     src/motion_planner.cpp
     src/components/motion.cpp
     src/components/motion_queue.cpp
@@ -51,30 +51,38 @@ add_executable(
     src/motions/hold_position.cpp
     src/motions/rhytmic_dmp_motion.cpp
     src/motions/raw_trajectory.cpp
-    src/ros2_motion_planner.cpp
-    src/ros2/ros2_motion_parameters.cpp
-    src/ros2/ros2_robot_system.cpp
 )
 target_include_directories(
-    motion_planner
+    motion_planner_commons
     PUBLIC
     include
 )
 target_link_libraries(
-    motion_planner
+    motion_planner_commons
     PUBLIC
     Eigen3::Eigen
     mdvcpplib::mdvcpplib
     nlohmann_json::nlohmann_json
 )
 ament_target_dependencies(
-    motion_planner
+    motion_planner_commons
     PUBLIC
     rclcpp
     geometry_msgs
     tf2_ros
     inverse_msgs
     std_srvs
+)
+
+add_executable(
+    motion_planner
+    src/ros2_motion_planner.cpp
+    src/ros2/ros2_motion_parameters.cpp
+    src/ros2/ros2_robot_system.cpp
+)
+target_link_libraries(
+    motion_planner
+    motion_planner_commons
 )
 
 install(

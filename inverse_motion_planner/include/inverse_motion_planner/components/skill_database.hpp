@@ -7,6 +7,7 @@
 #include <mdv/utils/logging.hpp>
 
 #include "inverse_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 
 class SkillDatabase {
 public:
@@ -14,6 +15,7 @@ public:
         Motion::Se3Pose initial_pose;
         Motion::Se3Pose final_pose;
         Eigen::MatrixXd dmp_weights;
+        DmpParameters   dmp_params;
     };
 
     SkillDatabase(

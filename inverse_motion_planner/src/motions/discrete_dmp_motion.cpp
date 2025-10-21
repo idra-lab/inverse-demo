@@ -3,6 +3,7 @@
 #include <mdv/ros2/conversions.hpp>
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view/transform.hpp>
+#include <rclcpp/parameter_map.hpp>
 
 #include "inverse_motion_planner/components/interpolation.hpp"
 
@@ -39,31 +40,50 @@ DiscreteDmpMotion::DiscreteDmpMotion(
     _dmp.dmp().learn(demo);
 
     // Optimise tau
-    _dmp.dmp().tau      = 1.0;
     _dmp.goal_state.y() = demo.back().y();
-    _initial_pose       = demo.front().y();
+    _dmp.dmp().tau      = 1.0;
 
     if ((demo.front().y().pos - demo.back().y().pos).norm() < 1e-2) return;
 
-    auto integrated_trajectory = _dmp.dmp().integrate(
-            demo.front().y(), demo.back().y(), 200, std::chrono::milliseconds(5)
-    );
+    optimise_tau(demo.front().y(), demo.back().y(), parameters.max_vel);
+};
+
+DiscreteDmpMotion::DiscreteDmpMotion(
+        const Eigen::MatrixXd& dmp_weights,
+        const Se3Pose&         y0,
+        const Se3Pose&         g,
+        double                 dt,
+        const DmpParameters&   parameters,
+        mdv::Logger::SharedPtr logger
+) :
+        DmpMotionInterface(parameters, dt, std::move(logger)) {
+    _dmp.dmp().weights() = dmp_weights;
+    _dmp.goal_state.y()  = g;
+    optimise_tau(y0, g, parameters.max_vel);
+}
+
+void
+DiscreteDmpMotion::optimise_tau(
+        const Se3Pose& y0, const Se3Pose& g, const double v_max
+) {
+    // Optimise tau
+    _dmp.dmp().tau = 1.0;
+    auto integrated_trajectory =
+            _dmp.dmp().integrate(y0, g, 200, std::chrono::milliseconds(5));
     auto get_sample_velocity = [](const auto& sample) -> double {
         return sample.yd().pos.norm();
     };
     const double dmp_max_vel =
             rs::max(integrated_trajectory | rv::transform(get_sample_velocity));
-    _dmp.dmp().tau = dmp_max_vel / parameters.max_vel;
+    _dmp.dmp().tau = dmp_max_vel / v_max;
     _dmp.dmp().logger().debug(
             "Optimal tau: {} (with tau = 1 the max. vel. is {}; maximum vel. allowed: "
             "{})",
             _dmp.dmp().tau,
             dmp_max_vel,
-            parameters.max_vel
+            v_max
     );
-
-    try_rerun_plot_trajectories(demo, integrated_trajectory);
-};
+}
 
 DiscreteDmpMotion::UniquePtr
 DiscreteDmpMotion::linear_interpolation(
@@ -105,77 +125,4 @@ DiscreteDmpMotion::describe() const {
             mdv::ros2::describe(initial_pose()),
             mdv::ros2::describe(final_pose())
     );
-}
-
-void
-try_rerun_plot_trajectories(const auto& demonstration, const auto& integration) {
-#if 0
-#ifdef MDV_WITH_RERUN_SDK
-    // Rerun
-    using rerun::Scalars;
-    using rerun::archetypes::SeriesLines;
-    using rerun::archetypes::SeriesPoints;
-    using rerun::components::Color;
-
-    const Color c1(237, 135, 150);
-    const Color c2(166, 218, 149);
-    const Color c3(138, 173, 244);
-    const Color c4(238, 212, 159);
-
-    rerun::RecordingStream rec("DmpLearning");
-    mdv::RerunConverter    rr_converter;
-    if (rec.spawn().is_ok()) {
-        // clang-format off
-        rec.log_static("integration/position/px",    SeriesLines().with_colors(c2).with_names("x"));
-        rec.log_static("integration/position/py",    SeriesLines().with_colors(c3).with_names("y"));
-        rec.log_static("integration/position/pz",    SeriesLines().with_colors(c4).with_names("z"));
-        rec.log_static("integration/orientation/qw", SeriesLines().with_colors(c1).with_names("qw"));
-        rec.log_static("integration/orientation/qx", SeriesLines().with_colors(c2).with_names("qx"));
-        rec.log_static("integration/orientation/qy", SeriesLines().with_colors(c3).with_names("qy"));
-        rec.log_static("integration/orientation/qz", SeriesLines().with_colors(c4).with_names("qz"));
-        rec.log_static("integration/s3/qw", SeriesPoints().with_colors(c1).with_names("qw"));
-        rec.log_static("integration/s3/qx", SeriesPoints().with_colors(c2).with_names("qx"));
-        rec.log_static("integration/s3/qy", SeriesPoints().with_colors(c3).with_names("qy"));
-        rec.log_static("integration/s3/qz", SeriesPoints().with_colors(c4).with_names("qz"));
-        
-        rec.log_static("demonstration/position/px",    SeriesPoints().with_colors(c2).with_names("x"));
-        rec.log_static("demonstration/position/py",    SeriesPoints().with_colors(c3).with_names("y"));
-        rec.log_static("demonstration/position/pz",    SeriesPoints().with_colors(c4).with_names("z"));
-        rec.log_static("demonstration/orientation/qw", SeriesPoints().with_colors(c1).with_names("qw"));
-        rec.log_static("demonstration/orientation/qx", SeriesPoints().with_colors(c2).with_names("qx"));
-        rec.log_static("demonstration/orientation/qy", SeriesPoints().with_colors(c3).with_names("qy"));
-        rec.log_static("demonstration/orientation/qz", SeriesPoints().with_colors(c4).with_names("qz"));
-
-        const auto& traj = integration;
-
-        const double dt_demo = 0.1;
-        const double dt_integration= dt_demo * double(demonstration.size()) / double(traj.size());
-
-        for(long i = 0; i < demonstration.size(); ++i) {
-            rec.set_time_sequence("tick", i);
-            rec.set_time_seconds("time", double(i) * dt_demo);
-            rec.log("demonstration/position/px",    Scalars(demonstration[i].y().pos(0)));
-            rec.log("demonstration/position/py",    Scalars(demonstration[i].y().pos(1)));
-            rec.log("demonstration/position/pz",    Scalars(demonstration[i].y().pos(2)));
-            rec.log("demonstration/orientation/qw", Scalars(demonstration[i].y().ori.w()));
-            rec.log("demonstration/orientation/qx", Scalars(demonstration[i].y().ori.x()));
-            rec.log("demonstration/orientation/qy", Scalars(demonstration[i].y().ori.y()));
-            rec.log("demonstration/orientation/qz", Scalars(demonstration[i].y().ori.z()));
-        }
-        for(long i = 0; i < traj.size(); ++i) {
-            assert(mdv::condition::is_unit_norm(traj[i].y().ori.coeffs()));
-            rec.set_time_sequence("tick", i);
-            rec.set_time_seconds("time", double(i) * dt_integration);
-            rec.log("integration/position/px",    Scalars(traj[i].y().pos(0)));
-            rec.log("integration/position/py",    Scalars(traj[i].y().pos(1)));
-            rec.log("integration/position/pz",    Scalars(traj[i].y().pos(2)));
-            rec.log("integration/orientation/qw", Scalars(traj[i].y().ori.w()));
-            rec.log("integration/orientation/qx", Scalars(traj[i].y().ori.x()));
-            rec.log("integration/orientation/qy", Scalars(traj[i].y().ori.y()));
-            rec.log("integration/orientation/qz", Scalars(traj[i].y().ori.z()));
-        }
-        // clang-format on
-    }
-#endif  // MDV_WITH_RERUN_SDK
-#endif
 }
