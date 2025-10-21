@@ -1,4 +1,4 @@
-#include "magician_motion_planner/ros2/ros2_robot_system.hpp"
+#include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
 #include <gsl/assert>
 

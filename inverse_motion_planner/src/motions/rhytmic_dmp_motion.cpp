@@ -1,4 +1,4 @@
-#include "magician_motion_planner/motions/rhytmic_dmp_motion.hpp"
+#include "inverse_motion_planner/motions/rhytmic_dmp_motion.hpp"
 
 #include <Eigen/Geometry>
 
@@ -6,7 +6,7 @@
 #include <mdv/utils/logging.hpp>
 #include <range/v3/all.hpp>
 
-#include "magician_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/components/motion.hpp"
 
 namespace rs = ::ranges;
 namespace rv = ::ranges::views;

@@ -1,12 +1,12 @@
-#ifndef MAGICIAN_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP
-#define MAGICIAN_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP
+#ifndef INVERSE_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP
+#define INVERSE_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP
 
 #include <mdv/dmp/dmp.hpp>
 #include <mdv/macros.hpp>
 #include <mdv/riemann_geometry/se3.hpp>
 #include <mdv/utils/logging.hpp>
 
-#include "magician_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/components/motion.hpp"
 
 struct DmpParameters;
 
@@ -54,4 +54,4 @@ struct DmpParameters {
 };
 
 
-#endif  // MAGICIAN_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP
+#endif  // INVERSE_MOTION_PLANNER_DMP_MOTION_INTERFACE_HPP

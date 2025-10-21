@@ -1,8 +1,8 @@
-#include "magician_motion_planner/motions/hold_position.hpp"
+#include "inverse_motion_planner/motions/hold_position.hpp"
 
 #include <mdv/ros2/conversions.hpp>
 
-#include "magician_motion_planner/motions/dmp_motion_interface.hpp"
+#include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 
 HoldPositionMotion::HoldPositionMotion(
         const Se3Pose&         desired_hold_pose,

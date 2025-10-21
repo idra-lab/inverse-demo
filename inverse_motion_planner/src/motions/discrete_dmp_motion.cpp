@@ -1,10 +1,10 @@
-#include "magician_motion_planner/motions/discrete_dmp_motion.hpp"
+#include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
 
 #include <mdv/ros2/conversions.hpp>
 #include <range/v3/algorithm.hpp>
 #include <range/v3/view/transform.hpp>
 
-#include "magician_motion_planner/components/interpolation.hpp"
+#include "inverse_motion_planner/components/interpolation.hpp"
 
 #ifdef MDV_WITH_RERUN_SDK
 #include <mdv/rerun.hpp>

@@ -1,10 +1,10 @@
-#ifndef MAGICIAN_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP
-#define MAGICIAN_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP
+#ifndef INVERSE_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP
+#define INVERSE_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP
 
 #include <mdv/utils/logging.hpp>
 
-#include "magician_motion_planner/components/path_profiler.hpp"
-#include "magician_motion_planner/motions/dmp_motion_interface.hpp"
+#include "inverse_motion_planner/components/path_profiler.hpp"
+#include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 
 class DiscreteDmpMotion : public DmpMotionInterface {
 public:
@@ -40,4 +40,4 @@ private:
 };
 
 
-#endif  // MAGICIAN_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP
+#endif  // INVERSE_MOTION_PLANNER_DISCRETE_DMP_MOTION_HPP

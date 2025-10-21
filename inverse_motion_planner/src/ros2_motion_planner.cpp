@@ -1,4 +1,4 @@
-#include "magician_motion_planner/ros2_motion_planner.hpp"
+#include "inverse_motion_planner/ros2_motion_planner.hpp"
 
 #include <filesystem>
 #include <gsl/assert>
@@ -13,14 +13,14 @@
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/executors/multi_threaded_executor.hpp>
 
-#include "magician_motion_planner/components/interpolation.hpp"
-#include "magician_motion_planner/components/path_profiler.hpp"
-#include "magician_motion_planner/motions/discrete_dmp_motion.hpp"
-#include "magician_motion_planner/motions/hold_position.hpp"
-#include "magician_motion_planner/motions/raw_trajectory.hpp"
-#include "magician_motion_planner/motions/rhytmic_dmp_motion.hpp"
-#include "magician_motion_planner/ros2/ros2_motion_parameters.hpp"
-#include "magician_motion_planner/ros2/ros2_robot_system.hpp"
+#include "inverse_motion_planner/components/interpolation.hpp"
+#include "inverse_motion_planner/components/path_profiler.hpp"
+#include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
+#include "inverse_motion_planner/motions/hold_position.hpp"
+#include "inverse_motion_planner/motions/raw_trajectory.hpp"
+#include "inverse_motion_planner/motions/rhytmic_dmp_motion.hpp"
+#include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
+#include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
 namespace rs = ::ranges;
 namespace rv = ::ranges::views;

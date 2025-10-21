@@ -1,4 +1,4 @@
-#include "magician_motion_planner/components/motion_queue.hpp"
+#include "inverse_motion_planner/components/motion_queue.hpp"
 
 #include <gsl/assert>
 #include <mutex>

@@ -1,5 +1,5 @@
-#ifndef MAGICIAN_MOTION_PLANNER_MOTION_HPP
-#define MAGICIAN_MOTION_PLANNER_MOTION_HPP
+#ifndef INVERSE_MOTION_PLANNER_MOTION_HPP
+#define INVERSE_MOTION_PLANNER_MOTION_HPP
 
 #include <functional>
 #include <memory>
@@ -65,4 +65,4 @@ private:
     LifecycleHooks _on_motion_start_hooks;
     LifecycleHooks _on_motion_completion_hooks;
 };
-#endif  // MAGICIAN_MOTION_PLANNER_MOTION_HPP
+#endif  // INVERSE_MOTION_PLANNER_MOTION_HPP

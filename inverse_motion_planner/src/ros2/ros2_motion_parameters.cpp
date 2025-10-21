@@ -1,4 +1,4 @@
-#include "magician_motion_planner/ros2/ros2_motion_parameters.hpp"
+#include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
 
 #include <gsl/assert>
 

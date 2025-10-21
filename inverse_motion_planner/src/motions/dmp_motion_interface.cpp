@@ -1,4 +1,4 @@
-#include "magician_motion_planner/motions/dmp_motion_interface.hpp"
+#include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 
 DmpMotionInterface::DmpMotionInterface(
         const DmpParameters& parameters, const double dt, mdv::Logger::SharedPtr logger

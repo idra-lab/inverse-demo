@@ -1,4 +1,4 @@
-#include "magician_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/components/motion.hpp"
 
 void
 Motion::add_motion_start_hook(Callback&& cbk) {

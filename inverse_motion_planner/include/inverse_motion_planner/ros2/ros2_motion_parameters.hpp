@@ -1,10 +1,10 @@
-#ifndef MAGICIAN_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP
-#define MAGICIAN_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP
+#ifndef INVERSE_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP
+#define INVERSE_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP
 
 #include <mdv/utils/logging.hpp>
 #include <rclcpp/node.hpp>
 
-#include "magician_motion_planner/interfaces/parameters_interface.hpp"
+#include "inverse_motion_planner/interfaces/parameters_interface.hpp"
 
 class Ros2PlannerParameters : public PlannerParameterInterface {
 public:
@@ -30,4 +30,4 @@ private:
     double      _dt;
 };
 
-#endif  // MAGICIAN_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP
+#endif  // INVERSE_MOTION_PLANNER_ROS2_MOTION_PARAMETERS_HPP

@@ -1,12 +1,12 @@
-#ifndef MAGICIAN_MOTION_PLANNER_INTERPOLATION_HPP
-#define MAGICIAN_MOTION_PLANNER_INTERPOLATION_HPP
+#ifndef INVERSE_MOTION_PLANNER_INTERPOLATION_HPP
+#define INVERSE_MOTION_PLANNER_INTERPOLATION_HPP
 
 #include <vector>
 
 #include <mdv/mesh/fwd.hpp>
 
-#include "magician_motion_planner/components/motion.hpp"
-#include "magician_motion_planner/components/path_profiler.hpp"
+#include "inverse_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/components/path_profiler.hpp"
 
 std::vector<Motion::Se3Pose> linear_ptp_interpolation(
         const Motion::Se3Pose&                 from,
@@ -74,4 +74,4 @@ Motion::Se3Pose minimise_rotation_around_z_axis(
 }  // namespace meshmotion
 
 
-#endif  // MAGICIAN_MOTION_PLANNER_INTERPOLATION_HPP
+#endif  // INVERSE_MOTION_PLANNER_INTERPOLATION_HPP

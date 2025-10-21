@@ -1,4 +1,4 @@
-#include "magician_motion_planner/motion_planner.hpp"
+#include "inverse_motion_planner/motion_planner.hpp"
 
 #include <cassert>
 #include <gsl/assert>

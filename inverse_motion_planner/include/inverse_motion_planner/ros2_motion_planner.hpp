@@ -1,5 +1,5 @@
-#ifndef MAGICIAN_MOTION_PLANNER_ROS2_PLANNER_HPP
-#define MAGICIAN_MOTION_PLANNER_ROS2_PLANNER_HPP
+#ifndef INVERSE_MOTION_PLANNER_ROS2_PLANNER_HPP
+#define INVERSE_MOTION_PLANNER_ROS2_PLANNER_HPP
 
 #include <memory>
 
@@ -18,9 +18,9 @@
 #include <inverse_msgs/srv/hold_position.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
-#include "magician_motion_planner/motion_planner.hpp"
-#include "magician_motion_planner/ros2/ros2_motion_parameters.hpp"
-#include "magician_motion_planner/ros2/ros2_robot_system.hpp"
+#include "inverse_motion_planner/motion_planner.hpp"
+#include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
+#include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
 class Ros2MotionPlanner : public rclcpp::Node {
 public:
@@ -153,4 +153,4 @@ private:
     void deactivate_reference_broadcasting();
 };
 
-#endif  // MAGICIAN_MOTION_PLANNER_ROS2_PLANNER_HPP
+#endif  // INVERSE_MOTION_PLANNER_ROS2_PLANNER_HPP

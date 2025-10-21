@@ -1,5 +1,5 @@
-#ifndef MAGICIAN_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP
-#define MAGICIAN_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP
+#ifndef INVERSE_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP
+#define INVERSE_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP
 
 #include <optional>
 #include <tf2_ros/buffer.h>
@@ -10,8 +10,8 @@
 #include <mdv/utils/logging.hpp>
 #include <rclcpp/node.hpp>
 
-#include "magician_motion_planner/interfaces/parameters_interface.hpp"
-#include "magician_motion_planner/interfaces/robot_system_interface.hpp"
+#include "inverse_motion_planner/interfaces/parameters_interface.hpp"
+#include "inverse_motion_planner/interfaces/robot_system_interface.hpp"
 
 class Ros2RobotSystem : public RobotSystemInterface {
 public:
@@ -50,4 +50,4 @@ private:
     std::optional<Se3Pose> _cartesio_reference = std::nullopt;
 };
 
-#endif  // MAGICIAN_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP
+#endif  // INVERSE_MOTION_PLANNER_ROS2_ROBOT_SYSTEM_HPP

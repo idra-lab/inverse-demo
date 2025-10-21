@@ -1,4 +1,4 @@
-#include "magician_motion_planner/components/path_profiler.hpp"
+#include "inverse_motion_planner/components/path_profiler.hpp"
 
 #include <Eigen/Dense>
 

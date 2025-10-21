@@ -1,4 +1,4 @@
-#include "magician_motion_planner/components/interpolation.hpp"
+#include "inverse_motion_planner/components/interpolation.hpp"
 
 #include <mdv/mesh/algorithm.hpp>
 #include <mdv/mesh/fwd.hpp>
@@ -6,7 +6,7 @@
 #include <mdv/mesh/point.hpp>
 #include <range/v3/all.hpp>
 
-#include "magician_motion_planner/motion_planner.hpp"
+#include "inverse_motion_planner/motion_planner.hpp"
 
 #ifdef MDV_WITH_RERUN_SDK
 #include <mdv/rerun.hpp>

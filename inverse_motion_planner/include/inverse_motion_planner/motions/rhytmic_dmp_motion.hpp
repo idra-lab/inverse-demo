@@ -1,5 +1,5 @@
-#ifndef MAGICIAN_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP
-#define MAGICIAN_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP
+#ifndef INVERSE_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP
+#define INVERSE_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP
 
 #include <string>
 
@@ -7,7 +7,7 @@
 #include <mdv/dmp/rhythmic_dmp.hpp>
 #include <mdv/riemann_geometry/se3.hpp>
 
-#include "magician_motion_planner/components/motion.hpp"
+#include "inverse_motion_planner/components/motion.hpp"
 
 struct RhytmicDmpParameters {
     double      alpha           = 48.0;
@@ -50,4 +50,4 @@ private:
     std::size_t _target_revs;
 };
 
-#endif  // MAGICIAN_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP
+#endif  // INVERSE_MOTION_PLANNER_RHYTMIC_DMP_MOTION_HPP

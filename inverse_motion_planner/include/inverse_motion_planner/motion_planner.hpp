@@ -1,14 +1,14 @@
-#ifndef MAGICIAN_MOTION_PLANNER_HPP
-#define MAGICIAN_MOTION_PLANNER_HPP
+#ifndef INVERSE_MOTION_PLANNER_HPP
+#define INVERSE_MOTION_PLANNER_HPP
 
 #include <memory>
 
 #include <mdv/macros.hpp>
 #include <mdv/ros2/se3.hpp>
 
-#include "magician_motion_planner/components/motion_queue.hpp"
-#include "magician_motion_planner/interfaces/parameters_interface.hpp"
-#include "magician_motion_planner/interfaces/robot_system_interface.hpp"
+#include "inverse_motion_planner/components/motion_queue.hpp"
+#include "inverse_motion_planner/interfaces/parameters_interface.hpp"
+#include "inverse_motion_planner/interfaces/robot_system_interface.hpp"
 
 class MotionPlanner {
 public:
@@ -53,4 +53,4 @@ private:
 };
 
 
-#endif  // MAGICIAN_MOTION_PLANNER_HPP
+#endif  // INVERSE_MOTION_PLANNER_HPP
