@@ -1,0 +1,5 @@
+string skill_name
+geometry_msgs/PoseStamped final_pose
+float64 max_vel 0.1
+---
+bool success

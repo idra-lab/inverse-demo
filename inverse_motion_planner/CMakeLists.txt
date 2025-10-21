@@ -51,6 +51,8 @@ add_library(
     src/motions/hold_position.cpp
     src/motions/rhytmic_dmp_motion.cpp
     src/motions/raw_trajectory.cpp
+    src/ros2/ros2_motion_parameters.cpp
+    src/ros2/ros2_robot_system.cpp
 )
 target_include_directories(
     motion_planner_commons
@@ -77,16 +79,23 @@ ament_target_dependencies(
 add_executable(
     motion_planner
     src/ros2_motion_planner.cpp
-    src/ros2/ros2_motion_parameters.cpp
-    src/ros2/ros2_robot_system.cpp
 )
 target_link_libraries(
     motion_planner
     motion_planner_commons
 )
 
+add_executable(
+    skill_learner
+    src/skill_learner.cpp
+)
+target_link_libraries(
+    skill_learner
+    motion_planner_commons
+)
+
 install(
-    TARGETS motion_planner
+    TARGETS motion_planner skill_learner
     DESTINATION lib/${PROJECT_NAME}
 )
 ament_package()

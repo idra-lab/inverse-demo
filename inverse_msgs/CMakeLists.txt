@@ -11,6 +11,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     srv/motion_planner/MoveRelative.srv
     srv/motion_planner/PointToPointMotion.srv
     srv/motion_planner/ReachPosition.srv
+    srv/motion_planner/LearnSkill.srv
+    srv/motion_planner/ExecuteSkill.srv
     DEPENDENCIES 
     std_msgs
     geometry_msgs
