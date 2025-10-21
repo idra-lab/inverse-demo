@@ -82,6 +82,8 @@ SkillLearner::on_learn_skill_request(
 
     const auto y0 = full_demo.front();
     const auto g  = full_demo.back();
+    logger().info("y0: {}", mdv::ros2::describe(y0));
+    logger().info("g: {}", mdv::ros2::describe(g));
 
     const auto first_sample = std::find_if(
             full_demo.cbegin(),

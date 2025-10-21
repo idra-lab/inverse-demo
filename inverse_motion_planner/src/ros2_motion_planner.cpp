@@ -177,7 +177,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
                 on_execute_skill_request(req, res);
             };
     _execute_skill_server =
-            create_service<ExecuteSkillSrv>("execute_skill", move_relative_lambda);
+            create_service<ExecuteSkillSrv>("execute_skill", execute_skill_lambda);
     assert(_execute_skill_server);
     logger().info(
             "Exposed service on topic {} with type "
@@ -381,29 +381,32 @@ Ros2MotionPlanner::on_execute_skill_request(
         return;
     }
 
-    const auto msg_y0 =
-            planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
-    const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
+    // const auto msg_y0 =
+    //         planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
+    // const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
 
-    const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
-    const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
+    // const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
+    // const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
+    const auto y0 = skill.value().initial_pose;
+    const auto g  = skill.value().final_pose;
 
     DmpParameters params = skill.value().dmp_params;
     params.max_vel       = req->max_vel;
-    if (req->use_learned_initial_pose) {
-        logger().info("Adding motion to reach the initial configuration");
-        auto plan = DiscreteDmpMotion::linear_interpolation(
-                planner().motion_queue().get_queue_final_pose(),
-                y0,
-                planner().parameters().get_dt(),
-                params
-        );
-        planner().motion_queue().append_motion(std::move(plan));
-    }
+    // if (req->use_learned_initial_pose) {
+    //     logger().info("Adding motion to reach the initial configuration");
+    //     auto plan = DiscreteDmpMotion::linear_interpolation(
+    //             planner().motion_queue().get_queue_final_pose(),
+    //             y0,
+    //             planner().parameters().get_dt(),
+    //             params
+    //     );
+    //     planner().motion_queue().append_motion(std::move(plan));
+    // }
 
     auto plan = std::make_unique<DiscreteDmpMotion>(
             skill.value().dmp_weights, y0, g, planner().parameters().get_dt(), params
     );
+    plan->optimise_tau(y0, g, params.max_vel);
     planner().motion_queue().append_motion(std::move(plan));
     resp->success = true;
 }

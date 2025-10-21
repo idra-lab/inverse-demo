@@ -73,6 +73,9 @@ Ros2RobotSystem::Se3Pose
 Ros2RobotSystem::current_ee_position() const {
     const std::string ee_link   = parameters().get_ee_link();
     const std::string base_link = parameters().get_base_link();
-    const auto tf_pose = Se3Pose::from_affine(get_transformation(ee_link, base_link));
+    auto tf_pose = Se3Pose::from_affine(get_transformation(ee_link, base_link));
+    if(tf_pose.ori.w() < 0.0)
+        tf_pose.ori.coeffs() *= -1.0;
+    
     return _cartesio_reference.value_or(tf_pose);
 }

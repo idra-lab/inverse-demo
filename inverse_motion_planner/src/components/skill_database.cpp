@@ -146,3 +146,9 @@ void
 SkillDatabase::add_skill(const std::string& skill_name, const SkillData& data) {
     _db[skill_name] = data;
 }
+
+std::optional<SkillDatabase::SkillData>
+SkillDatabase::get_skill(const std::string& skill_name) {
+    if (!_db.contains(skill_name)) return std::nullopt;
+    return _db[skill_name];
+}

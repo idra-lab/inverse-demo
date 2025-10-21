@@ -149,11 +149,11 @@ def launch_setup(context, *args, **kwargs):
     nodes_to_start += [
         multimanual_launch,
         franka1_collision_behavior,
-        # franka2_collision_behavior,
+        franka2_collision_behavior,
         left_controller_spawner,
-        # right_controller_spawner,
+        right_controller_spawner,
         left_planner_node,
-        # right_planner_node,
+        right_planner_node,
     ]
     return nodes_to_start
 
