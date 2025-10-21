@@ -11,6 +11,7 @@
 
   <depend>eigen</depend>
   <depend>mdvcpplib</depend>
+  <depend>nlohmann-json-dev</depend>
 
   <depend>rclcpp</depend>
   <depend>std_srvs</depend>

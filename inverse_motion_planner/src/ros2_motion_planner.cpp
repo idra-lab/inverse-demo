@@ -1,9 +1,9 @@
 #include "inverse_motion_planner/ros2_motion_planner.hpp"
 
+#include <Eigen/Geometry>
 #include <filesystem>
 #include <gsl/assert>
 #include <rmw/qos_profiles.h>
-#include <Eigen/Geometry>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <mdv/ros2/conversions.hpp>
@@ -15,6 +15,7 @@
 
 #include "inverse_motion_planner/components/interpolation.hpp"
 #include "inverse_motion_planner/components/path_profiler.hpp"
+#include "inverse_motion_planner/components/skill_database.hpp"
 #include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
 #include "inverse_motion_planner/motions/hold_position.hpp"
 #include "inverse_motion_planner/motions/raw_trajectory.hpp"
@@ -24,7 +25,6 @@
 
 namespace rs = ::ranges;
 namespace rv = ::ranges::views;
-
 
 Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     _logger = std::make_shared<mdv::ros2::RosLogger>(get_logger());
@@ -180,6 +180,13 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     _reference_group =
             create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     setup_reference_publisher(planner().parameters().get_ee_link());
+
+    using std::filesystem::path;
+    const path default_db =
+            path(ament_index_cpp::get_package_share_directory("inverse_motion_planner"))
+            / "motion.json";
+    _db_file  = declare_parameter("skill_database", default_db.string());
+    _skill_db = std::make_unique<SkillDatabase>(_db_file, _logger);
 };
 
 //   ____      _ _ _                _
@@ -324,8 +331,7 @@ Ros2MotionPlanner::on_move_relative_request(
 
     const std::string     base_link    = planner().parameters().get_base_link();
     const std::string     ee_link      = planner().parameters().get_ee_link();
-    const Eigen::Affine3d in_transform =
-    mdv::ros2::get_transform(req->relative_motion);
+    const Eigen::Affine3d in_transform = mdv::ros2::get_transform(req->relative_motion);
 
     const Se3Framed y0{planner().motion_queue().get_queue_final_pose(), base_link};
 
@@ -392,7 +398,7 @@ Ros2MotionPlanner::activate_reference_broadcasting() {
     auto step_and_publish_reference = [this]() {
         if (_use_topic_des_f) _f_des = _f_des_topic;
 
-        auto ref = Se3Pose(planner().step());
+        auto       ref        = Se3Pose(planner().step());
         const auto ref_framed = Se3Framed(ref, planner().parameters().get_base_link());
         _reference_publisher->publish(mdv::ros2::to_pose_message(ref_framed));
     };

@@ -4,6 +4,10 @@
 #include <memory>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <inverse_msgs/srv/hold_position.hpp>
+#include <inverse_msgs/srv/move_relative.hpp>
+#include <inverse_msgs/srv/point_to_point_motion.hpp>
+#include <inverse_msgs/srv/reach_position.hpp>
 #include <mdv/macros.hpp>
 #include <mdv/utils/logging.hpp>
 #include <rclcpp/callback_group.hpp>
@@ -12,20 +16,17 @@
 #include <rclcpp/timer.hpp>
 #include <std_msgs/msg/float64.hpp>
 #include <std_srvs/srv/set_bool.hpp>
-#include <inverse_msgs/srv/move_relative.hpp>
-#include <inverse_msgs/srv/point_to_point_motion.hpp>
-#include <inverse_msgs/srv/reach_position.hpp>
-#include <inverse_msgs/srv/hold_position.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
+#include "inverse_motion_planner/components/skill_database.hpp"
 #include "inverse_motion_planner/motion_planner.hpp"
 #include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
 #include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
 class Ros2MotionPlanner : public rclcpp::Node {
 public:
-    using Se3Pose     = MotionPlanner::Se3Pose;
-    using Se3Framed   = MotionPlanner::Se3Framed;
+    using Se3Pose   = MotionPlanner::Se3Pose;
+    using Se3Framed = MotionPlanner::Se3Framed;
 
     Ros2MotionPlanner();
 
@@ -36,10 +37,13 @@ public:
     // clang-format on
 
 private:
-    mutable mdv::Logger::SharedPtr             _logger       = nullptr;
-    std::unique_ptr<Ros2PlannerParameters>     _parameters   = nullptr;
-    std::unique_ptr<Ros2RobotSystem>           _system       = nullptr;
-    std::unique_ptr<MotionPlanner>             _planner      = nullptr;
+    mutable mdv::Logger::SharedPtr         _logger     = nullptr;
+    std::unique_ptr<Ros2PlannerParameters> _parameters = nullptr;
+    std::unique_ptr<Ros2RobotSystem>       _system     = nullptr;
+    std::unique_ptr<MotionPlanner>         _planner    = nullptr;
+    std::unique_ptr<SkillDatabase>         _skill_db   = nullptr;
+
+    std::string _db_file;
 
     double _f_des           = 0.0;
     double _f_des_topic     = 0.0;

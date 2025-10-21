@@ -31,6 +31,7 @@ find_and_log_required(ament_cmake_python)
 find_and_log_required(Eigen3)
 find_and_log_required(fmt)
 find_and_log_required(mdvcpplib)
+find_and_log_required(nlohmann_json)
 find_and_log_required(rclcpp)
 find_and_log_required(std_srvs)
 find_and_log_required(geometry_msgs)
@@ -44,6 +45,7 @@ add_executable(
     src/components/motion_queue.cpp
     src/components/path_profiler.cpp
     src/components/interpolation.cpp
+    src/components/skill_database.cpp
     src/motions/dmp_motion_interface.cpp
     src/motions/discrete_dmp_motion.cpp
     src/motions/hold_position.cpp
@@ -63,6 +65,7 @@ target_link_libraries(
     PUBLIC
     Eigen3::Eigen
     mdvcpplib::mdvcpplib
+    nlohmann_json::nlohmann_json
 )
 ament_target_dependencies(
     motion_planner
