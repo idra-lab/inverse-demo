@@ -51,6 +51,7 @@ add_library(
     src/motions/hold_position.cpp
     src/motions/rhytmic_dmp_motion.cpp
     src/motions/raw_trajectory.cpp
+    src/motions/peg_in_hole.cpp
     src/ros2/ros2_motion_parameters.cpp
     src/ros2/ros2_robot_system.cpp
 )
