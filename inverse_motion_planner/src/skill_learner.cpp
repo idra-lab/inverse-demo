@@ -86,20 +86,20 @@ SkillLearner::on_learn_skill_request(
     const auto first_sample = std::find_if(
             full_demo.cbegin(),
             full_demo.cend(),
-            [y0](const auto& y) -> bool { return (y0.pos - y.pos).norm() < 1e-2; }
+            [y0](const auto& y) -> bool { return (y0.pos - y.pos).norm() > 1e-2; }
     );
-    const auto first_sample_id = std::max<std::size_t>(
-            std::distance(full_demo.cbegin(), first_sample) - 10, 0
+    const auto first_sample_id = std::max<long>(
+            std::distance(full_demo.cbegin(), first_sample) - 30, 0
     );
     logger().info("First sample id: {}", first_sample_id);
 
     const auto last_sample = rs::find_if(
             full_demo.crbegin(),
             full_demo.crend(),
-            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() < 1e-2; }
+            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 1e-2; }
     );
     const auto last_sample_id = std::max<std::size_t>(
-            std::distance(full_demo.crbegin(), last_sample) + 10, full_demo.size()
+            std::distance(full_demo.crbegin(), last_sample) + 30, full_demo.size()
     );
     logger().info("Last sample id: {}", last_sample_id);
 
@@ -130,8 +130,6 @@ SkillLearner::on_learn_skill_request(
     resp->final_pose   = mdv::ros2::to_pose_message(skill_data.final_pose);
     resp->total_demonstration_time =
             std::chrono::duration<double>(sampling_period).count() * demo.size();
-
-    _skill_db->write_database(SkillDatabase::default_database());
 }
 
 int
