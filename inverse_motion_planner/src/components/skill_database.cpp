@@ -5,14 +5,22 @@
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
-#include <sstream>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>
 
 namespace rs = ::ranges;
 namespace rv = ::ranges::views;
 using json   = nlohmann::json;
+
+std::string
+SkillDatabase::default_database() {
+    using std::filesystem::path;
+    const path share_dir =
+            ament_index_cpp::get_package_share_directory("inverse_motion_planner");
+    return (share_dir / "motion.json").string();
+}
 
 namespace {
 json

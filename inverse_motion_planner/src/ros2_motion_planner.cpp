@@ -5,7 +5,6 @@
 #include <gsl/assert>
 #include <rmw/qos_profiles.h>
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <mdv/ros2/conversions.hpp>
 #include <mdv/ros2/logger.hpp>
 #include <mdv/utils/logging.hpp>
@@ -181,11 +180,7 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
             create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     setup_reference_publisher(planner().parameters().get_ee_link());
 
-    using std::filesystem::path;
-    const path default_db =
-            path(ament_index_cpp::get_package_share_directory("inverse_motion_planner"))
-            / "motion.json";
-    _db_file  = declare_parameter("skill_database", default_db.string());
+    _db_file  = declare_parameter("skill_database", SkillDatabase::default_database());
     _skill_db = std::make_unique<SkillDatabase>(_db_file, _logger);
 };
 

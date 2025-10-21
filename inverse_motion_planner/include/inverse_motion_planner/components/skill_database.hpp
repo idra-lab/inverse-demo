@@ -11,6 +11,8 @@
 
 class SkillDatabase {
 public:
+    static std::string default_database();
+
     struct SkillData {
         Motion::Se3Pose initial_pose;
         Motion::Se3Pose final_pose;
