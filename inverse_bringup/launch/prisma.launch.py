@@ -52,6 +52,33 @@ def launch_setup(context, *args, **kwargs):
             "right_ip": "192.168.9.12",
         }.items(),
     )
+        # Set Force/Torque Collision Behavior for franka1
+    franka1_collision_behavior = ExecuteProcess(
+        cmd=[
+            'ros2', 'service', 'call',
+            '/franka1_service_server/set_force_torque_collision_behavior',
+            'franka_msgs/srv/SetForceTorqueCollisionBehavior',
+            "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
+            "upper_torque_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0], "
+            "lower_force_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
+            "upper_force_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0]}"
+        ],
+        output='screen'
+    )
+
+    # Set Force/Torque Collision Behavior for franka2
+    franka2_collision_behavior = ExecuteProcess(
+        cmd=[
+            'ros2', 'service', 'call',
+            '/franka2_service_server/set_force_torque_collision_behavior',
+            'franka_msgs/srv/SetForceTorqueCollisionBehavior',
+            "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
+            "upper_torque_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0], "
+            "lower_force_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
+            "upper_force_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0]}"
+        ],
+        output='screen'
+    )
 
     left_controller_spawner = Node(
         package='controller_manager',
@@ -121,6 +148,8 @@ def launch_setup(context, *args, **kwargs):
 
     nodes_to_start += [
         multimanual_launch,
+        franka1_collision_behavior,
+        franka2_collision_behavior,
         left_controller_spawner,
         right_controller_spawner,
         left_planner_node,

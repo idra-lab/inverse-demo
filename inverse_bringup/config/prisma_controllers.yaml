@@ -14,9 +14,16 @@ controller_manager:
 
     left_cartesian_impedance_controller:
       type: cartesian_impedance_controller/CartesianImpedanceController
-
+    
     right_cartesian_impedance_controller:
       type: cartesian_impedance_controller/CartesianImpedanceController
+    
+    left_motion_control_handle:
+      type: cartesian_controller_handles/MotionControlHandle
+
+    right_motion_control_handle:
+      type: cartesian_controller_handles/MotionControlHandle
+
 
 /**/right_gravity_compensation:
   ros__parameters:
@@ -147,3 +154,32 @@ controller_manager:
       - franka1_fr3_joint6
       - franka1_fr3_joint7
     frame_topic_name: "/franka_right/desired_pose"
+
+
+right_motion_control_handle:
+  ros__parameters:
+    robot_base_link: "franka1_fr3_link0"
+    end_effector_link: "franka1_fr3_hand_tcp"
+    target_frame_topic: "/franka_right/desired_pose"
+    joints:
+      - franka1_fr3_joint1
+      - franka1_fr3_joint2
+      - franka1_fr3_joint3
+      - franka1_fr3_joint4
+      - franka1_fr3_joint5
+      - franka1_fr3_joint6
+      - franka1_fr3_joint7
+
+left_motion_control_handle:
+  ros__parameters:
+    robot_base_link: "franka2_fr3_link0"
+    end_effector_link: "franka2_fr3_hand_tcp"
+    target_frame_topic: "/franka_left/desired_pose"
+    joints:
+      - franka2_fr3_joint1
+      - franka2_fr3_joint2
+      - franka2_fr3_joint3
+      - franka2_fr3_joint4
+      - franka2_fr3_joint5
+      - franka2_fr3_joint6
+      - franka2_fr3_joint7
