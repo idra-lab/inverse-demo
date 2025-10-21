@@ -28,6 +28,7 @@ namespace rv = ::ranges::views;
 
 Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     _logger = std::make_shared<mdv::ros2::RosLogger>(get_logger());
+
     Ensures(_logger);
 
     const bool debug_prints = declare_parameter("debug_prints", false);
@@ -37,6 +38,9 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     const bool debug_lib = declare_parameter("debug_lib", false);
     logger().info("debug_lib = {}", debug_lib);
     if (debug_lib) mdv::set_default_logger(_logger);
+
+    const std::string out_topic = declare_parameter("frame_topic_name", "desired_pose");
+    logger().debug("'frama_topic_name' = {}", out_topic);
 
     logger().debug("Initialising Ros2PlannerParameters");
     _parameters = std::make_unique<Ros2PlannerParameters>(_logger, this);
@@ -361,7 +365,7 @@ Ros2MotionPlanner::on_move_relative_request(
 //
 void
 Ros2MotionPlanner::setup_reference_publisher(const std::string& link_name) {
-    const std::string topic_name = fmt::format("/cartesian/{}/reference", link_name);
+    const std::string topic_name = get_parameter("frame_topic_name").as_string();
     _reference_publisher         = create_publisher<PoseStamped>(
             topic_name, rclcpp::QoS(1).durability_volatile()
     );

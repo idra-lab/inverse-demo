@@ -35,15 +35,17 @@ from ament_index_python.packages import (
 )
 
 
-
 def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = list()
 
-
     multimanual_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_path("inverse_bringup"), "launch", "bimanual.launch.py")
+            os.path.join(
+                get_package_share_path("inverse_bringup"),
+                "launch",
+                "bimanual.launch.py"
+            )
         ], ),
         launch_arguments={
             "left_ip": "192.168.9.11",
@@ -51,11 +53,80 @@ def launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
+    left_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'left_cartesian_impedance_controller',
+            '--controller-manager',
+            '/controller_manager'
+        ],
+        output='screen'
+    )
+
+    right_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'right_cartesian_impedance_controller',
+            '--controller-manager',
+            '/controller_manager'
+        ],
+        output='screen'
+    )
+
+    left_planner_node = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=left_controller_spawner,
+            on_exit=[
+                Node(
+                    package="inverse_motion_planner",
+                    executable="motion_planner",
+                    name="left_motion_planner",
+                    output="screen",
+                    namespace="left_planner",
+                    parameters=[
+                        os.path.join(
+                            get_package_share_path("inverse_bringup"),
+                            "config",
+                            "parameters.yaml"
+                        ),
+                    ],
+                )
+            ]
+        )
+    )
+
+    right_planner_node = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=right_controller_spawner,
+            on_exit=[
+                Node(
+                    package="inverse_motion_planner",
+                    executable="motion_planner",
+                    name="right_motion_planner",
+                    output="screen",
+                    namespace="right_planner",
+                    parameters=[
+                        os.path.join(
+                            get_package_share_path("inverse_bringup"),
+                            "config",
+                            "parameters.yaml"
+                        ),
+                    ],
+                )
+            ]
+        )
+    )
+
     nodes_to_start += [
         multimanual_launch,
+        left_controller_spawner,
+        right_controller_spawner,
+        left_planner_node,
+        right_planner_node,
     ]
     return nodes_to_start
-
 
 
 def generate_launch_description():
@@ -64,4 +135,3 @@ def generate_launch_description():
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]
     )
-

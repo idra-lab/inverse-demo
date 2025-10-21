@@ -1,0 +1,21 @@
+# Global parameters that may be used by different nodes
+# /**:
+#   ros__parameters:
+
+/**/left_motion_planner:
+  ros__parameters:
+    debug_prints: True
+    debug_lib: False
+    integration_timestep: 0.001
+    frame_topic_name: "/franka_left/desired_pose"
+    base_link: franka2_fr3_link0
+    ee_link: franka2_fr3_hand_tcp
+
+/**/right_motion_planner:
+  ros__parameters:
+    debug_prints: True
+    debug_lib: False
+    integration_timestep: 0.001
+    frame_topic_name: "/franka_right/desired_pose"
+    base_link: franka1_fr3_link0
+    ee_link: franka1_fr3_hand_tcp
