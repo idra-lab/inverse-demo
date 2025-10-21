@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <map>
+#include <optional>
 
 #include <mdv/utils/logging.hpp>
 
@@ -31,7 +32,7 @@ public:
 
     void add_skill(const std::string& skill_name, const SkillData& data);
 
-    std::unique_ptr<Motion> get_skill(const std::string& skill_name);
+    std::optional<SkillData> get_skill(const std::string& skill_name);
 
     // clang-format off
     mdv::Logger& logger() const { assert(_logger); return *_logger; }

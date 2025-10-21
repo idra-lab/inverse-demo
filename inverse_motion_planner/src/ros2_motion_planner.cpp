@@ -16,6 +16,7 @@
 #include "inverse_motion_planner/components/path_profiler.hpp"
 #include "inverse_motion_planner/components/skill_database.hpp"
 #include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
+#include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 #include "inverse_motion_planner/motions/hold_position.hpp"
 #include "inverse_motion_planner/motions/raw_trajectory.hpp"
 #include "inverse_motion_planner/motions/rhytmic_dmp_motion.hpp"
@@ -168,6 +169,20 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
             "Exposed service on topic {} with type "
             "inverse_msgs::srv::MoveRelative",
             _move_relative_server->get_service_name()
+    );
+
+    auto execute_skill_lambda =
+            [this](const ExecuteSkillSrv::Request::ConstSharedPtr req,
+                   ExecuteSkillSrv::Response::SharedPtr           res) {
+                on_execute_skill_request(req, res);
+            };
+    _execute_skill_server =
+            create_service<ExecuteSkillSrv>("execute_skill", move_relative_lambda);
+    assert(_execute_skill_server);
+    logger().info(
+            "Exposed service on topic {} with type "
+            "inverse_msgs::srv::ExecuteSkill",
+            _execute_skill_server->get_service_name()
     );
 
     //  ____        _     _ _     _
@@ -349,6 +364,46 @@ Ros2MotionPlanner::on_move_relative_request(
             y0, g, planner().parameters().get_dt(), params
     );
 
+    planner().motion_queue().append_motion(std::move(plan));
+    resp->success = true;
+}
+
+void
+Ros2MotionPlanner::on_execute_skill_request(
+        const ExecuteSkillSrv::Request::ConstSharedPtr& req,
+        ExecuteSkillSrv::Response::SharedPtr&           resp
+) {
+    resp->success = false;
+
+    const auto skill = _skill_db->get_skill(req->skill_name);
+    if (!skill.has_value()) {
+        logger().info("Skill {} is not present in database!", req->skill_name);
+        return;
+    }
+
+    const auto msg_y0 =
+            planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
+    const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
+
+    const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
+    const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
+
+    DmpParameters params = skill.value().dmp_params;
+    params.max_vel       = req->max_vel;
+    if (req->use_learned_initial_pose) {
+        logger().info("Adding motion to reach the initial configuration");
+        auto plan = DiscreteDmpMotion::linear_interpolation(
+                planner().motion_queue().get_queue_final_pose(),
+                y0,
+                planner().parameters().get_dt(),
+                params
+        );
+        planner().motion_queue().append_motion(std::move(plan));
+    }
+
+    auto plan = std::make_unique<DiscreteDmpMotion>(
+            skill.value().dmp_weights, y0, g, planner().parameters().get_dt(), params
+    );
     planner().motion_queue().append_motion(std::move(plan));
     resp->success = true;
 }

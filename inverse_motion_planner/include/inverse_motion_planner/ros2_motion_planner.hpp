@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <inverse_msgs/srv/execute_skill.hpp>
 #include <inverse_msgs/srv/hold_position.hpp>
 #include <inverse_msgs/srv/move_relative.hpp>
 #include <inverse_msgs/srv/point_to_point_motion.hpp>
@@ -136,6 +137,14 @@ private:
             MoveRelativeSrv::Response::SharedPtr&           response
     );
     MoveRelativeServer _move_relative_server = nullptr;
+
+    using ExecuteSkillSrv    = inverse_msgs::srv::ExecuteSkill;
+    using ExecuteSkillServer = rclcpp::Service<ExecuteSkillSrv>::SharedPtr;
+    void on_execute_skill_request(
+            const ExecuteSkillSrv::Request::ConstSharedPtr& request,
+            ExecuteSkillSrv::Response::SharedPtr&           response
+    );
+    ExecuteSkillServer _execute_skill_server = nullptr;
 
 
     //  ____        _     _ _     _
