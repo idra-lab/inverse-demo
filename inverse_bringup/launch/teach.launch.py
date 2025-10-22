@@ -84,7 +84,7 @@ def launch_setup(context, *args, **kwargs):
         package='controller_manager',
         executable='spawner',
         arguments=[
-            'left_cartesian_impedance_controller',
+            'left_gravity_compensation',
             '--controller-manager',
             '/controller_manager'
         ],

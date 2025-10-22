@@ -39,6 +39,69 @@ def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = list()
 
+    frames = {
+        "kit1_connector_grasp": ([
+            0.41213,
+            -0.06693,
+            0.36593,
+        ], [
+            0.99956,
+            -0.028345,
+            0.006056,
+            0.0057203,
+        ]),
+        "kit1_screw1": ([
+            0.36733,
+            -0.037261,
+            0.36326,
+        ], [
+            0.73267,
+            0.68043,
+            0.0017886,
+            0.014111,
+        ]),
+        "kit1_screw2": ([
+            0.36556,
+            -0.0093178,
+            0.36734,
+        ], [
+            0.70538,
+            0.70865,
+            0.015247,
+            0.0041137,
+        ]),
+        "kit1_connector_deposit": ([
+            0.40234,
+            0.3247,
+            -0.0015857,
+        ], [
+            0.017181,
+            0.99967,
+            -0.016636,
+            0.0088522,
+        ]),
+    }
+
+    for frame_name, (translation, rotation) in frames.items():
+        node = Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name=f'static_broadcaster_{frame_name}',
+            arguments=[
+                str(translation[0]),
+                str(translation[1]),
+                str(translation[2]),
+                str(rotation[0]),
+                str(rotation[1]),
+                str(rotation[2]),
+                str(rotation[3]),
+                'franka1_fr3_link0',
+                frame_name
+            ]
+        )
+        nodes_to_start.append(node)
+
+
     multimanual_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(
@@ -52,10 +115,12 @@ def launch_setup(context, *args, **kwargs):
             "right_ip": "192.168.9.12",
         }.items(),
     )
-        # Set Force/Torque Collision Behavior for franka1
+    # Set Force/Torque Collision Behavior for franka1
     franka1_collision_behavior = ExecuteProcess(
         cmd=[
-            'ros2', 'service', 'call',
+            'ros2',
+            'service',
+            'call',
             '/franka1_service_server/set_force_torque_collision_behavior',
             'franka_msgs/srv/SetForceTorqueCollisionBehavior',
             "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
@@ -69,7 +134,9 @@ def launch_setup(context, *args, **kwargs):
     # Set Force/Torque Collision Behavior for franka2
     franka2_collision_behavior = ExecuteProcess(
         cmd=[
-            'ros2', 'service', 'call',
+            'ros2',
+            'service',
+            'call',
             '/franka2_service_server/set_force_torque_collision_behavior',
             'franka_msgs/srv/SetForceTorqueCollisionBehavior',
             "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "

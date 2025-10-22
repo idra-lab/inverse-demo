@@ -5,7 +5,7 @@
 
   <link name="world"/>
   <joint name="world_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0.2"/>
+    <origin rpy="${pi} 0 0" xyz="0 0 0.2"/>
     <parent link="world"/>
     <child link="table"/>
   </joint>
@@ -113,6 +113,14 @@
                       >
   </xacro:franka_robot>
 
+  <link name="franka1_tcp"/>
+
+  <joint name="franka1_flange_to_tcp" type="fixed">
+    <parent link="franka1_fr3_hand_tcp"/>
+    <child link="franka1_tcp"/>
+    <origin xyz="0.0 0.0 0.126" rpy="0 0 0"/>
+  </joint>
+
   <!-- Dimensions taken from technical drawing of Franka plate and custom designed plate, do not touch -->
   <joint name="table_to_franka2" type="fixed">
     <parent link="table"/>
@@ -150,6 +158,14 @@
                       rpy_ee="0 0 ${-pi/4}"
                       >
   </xacro:franka_robot>
+
+  <link name="franka2_tcp"/>
+
+  <joint name="franka2_flange_to_tcp" type="fixed">
+    <parent link="franka2_fr3_hand_tcp"/>
+    <child link="franka2_tcp"/>
+    <origin xyz="0.0 0.0 0.11" rpy="0 0 0"/>
+  </joint>
 
   <!-- Dimensions taken from technical drawing of Franka plate and custom designed plate, do not touch -->
   <joint name="table_to_franka1" type="fixed">

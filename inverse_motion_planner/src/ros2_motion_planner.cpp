@@ -8,6 +8,7 @@
 #include <mdv/ros2/conversions.hpp>
 #include <mdv/ros2/logger.hpp>
 #include <mdv/utils/logging.hpp>
+#include <mdv/utils/logging_extras.hpp>
 #include <range/v3/all.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/executors/multi_threaded_executor.hpp>
@@ -381,14 +382,14 @@ Ros2MotionPlanner::on_execute_skill_request(
         return;
     }
 
-    // const auto msg_y0 =
-    //         planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
-    // const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
+    const auto msg_y0 =
+            planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
+    const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
 
-    // const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
-    // const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
-    const auto y0 = skill.value().initial_pose;
-    const auto g  = skill.value().final_pose;
+    const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
+    const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
+    // const auto y0 = skill.value().initial_pose;
+    // const auto g  = skill.value().final_pose;
 
     DmpParameters params = skill.value().dmp_params;
     params.max_vel       = req->max_vel;
