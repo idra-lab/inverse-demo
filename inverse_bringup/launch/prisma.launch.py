@@ -100,82 +100,21 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             "left_ip": "192.168.9.11",
             "right_ip": "192.168.9.12",
+            "use_fake_hardware": "true",
         }.items(),
     )
-    # Set Force/Torque Collision Behavior for franka1
-    franka1_collision_behavior = ExecuteProcess(
-        cmd=[
-            'ros2',
-            'service',
-            'call',
-            '/franka1_service_server/set_force_torque_collision_behavior',
-            'franka_msgs/srv/SetForceTorqueCollisionBehavior',
-            "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
-            "upper_torque_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0], "
-            "lower_force_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
-            "upper_force_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0]}"
-        ],
-        output='screen'
-    )
 
-    # Set Force/Torque Collision Behavior for franka2
-    franka2_collision_behavior = ExecuteProcess(
-        cmd=[
-            'ros2',
-            'service',
-            'call',
-            '/franka2_service_server/set_force_torque_collision_behavior',
-            'franka_msgs/srv/SetForceTorqueCollisionBehavior',
-            "{lower_torque_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
-            "upper_torque_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0], "
-            "lower_force_thresholds_nominal: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "
-            "upper_force_thresholds_nominal: [200.0, 200.0, 200.0, 200.0, 200.0, 200.0]}"
+    left_planner_node = Node(
+        package="inverse_motion_planner",
+        executable="motion_planner",
+        name="left_motion_planner",
+        output="screen",
+        namespace="left_planner",
+        parameters=[
+            os.path.join(
+                get_package_share_path("inverse_bringup"), "config", "parameters.yaml"
+            ),
         ],
-        output='screen'
-    )
-
-    left_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=[
-            'left_cartesian_impedance_controller',
-            '--controller-manager',
-            '/controller_manager'
-        ],
-        output='screen'
-    )
-
-    right_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=[
-            'right_cartesian_impedance_controller',
-            '--controller-manager',
-            '/controller_manager'
-        ],
-        output='screen'
-    )
-
-    left_planner_node = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=left_controller_spawner,
-            on_exit=[
-                Node(
-                    package="inverse_motion_planner",
-                    executable="motion_planner",
-                    name="left_motion_planner",
-                    output="screen",
-                    namespace="left_planner",
-                    parameters=[
-                        os.path.join(
-                            get_package_share_path("inverse_bringup"),
-                            "config",
-                            "parameters.yaml"
-                        ),
-                    ],
-                )
-            ]
-        )
     )
 
     start_controller = ExecuteProcess(
@@ -190,40 +129,27 @@ def launch_setup(context, *args, **kwargs):
         output='screen'
     )
 
-    right_planner_node = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=right_controller_spawner,
-            on_exit=[
-                Node(
-                    package="inverse_motion_planner",
-                    executable="motion_planner",
-                    name="right_motion_planner",
-                    output="screen",
-                    namespace="right_planner",
-                    parameters=[
-                        os.path.join(
-                            get_package_share_path("inverse_bringup"),
-                            "config",
-                            "parameters.yaml"
-                        ),
-                    ],
-                ),
-                TimerAction(
-                    period=2.0,
-                    actions=[start_controller],
-                )
-            ]
-        )
+    right_planner_node = Node(
+        package="inverse_motion_planner",
+        executable="motion_planner",
+        name="right_motion_planner",
+        output="screen",
+        namespace="right_planner",
+        parameters=[
+            os.path.join(
+                get_package_share_path("inverse_bringup"), "config", "parameters.yaml"
+            ),
+        ],
     )
 
     nodes_to_start += [
         multimanual_launch,
-        franka1_collision_behavior,
-        franka2_collision_behavior,
-        left_controller_spawner,
-        right_controller_spawner,
         left_planner_node,
         right_planner_node,
+        TimerAction(
+            period=4.0,
+            actions=[start_controller],
+        ),
     ]
     return nodes_to_start
 

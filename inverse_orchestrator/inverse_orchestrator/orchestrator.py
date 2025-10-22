@@ -19,18 +19,18 @@ class Orchestrator(Node):
 
         # franka right
         self.skill_exec_right = SkillExecutor(self, "right_planner/execute_skill")
-        self.gripper_right = GripperController(
-            self, "franka1/franka_gripper/grasp", "franka1/franka_gripper/move"
-        )
+        # self.gripper_right = GripperController(
+        #     self, "franka1/franka_gripper/grasp", "franka1/franka_gripper/move"
+        # )
         self.reach_pose_right = ReachPosition_Class(
             self, "right_planner/reach_position"
         )
         self.base_link1 = "franka1_fr3_link0"
         # franka left
         self.skill_exec_left = SkillExecutor(self, "left_planner/execute_skill")
-        self.gripper_left = GripperController(
-            self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
-        )
+        # self.gripper_left = GripperController(
+        #     self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
+        # )
         # self.reach_pose_left = ReachPosition(self, "left_planner/reach_position")
         self.base_link2 = "franka2_fr3_link0"
 
@@ -52,7 +52,7 @@ class Orchestrator(Node):
 
         # OPEN GRIPPER
         input("Press Enter to move gripper")
-        self.gripper_right.move_finger(width=0.03, speed=0.15)
+        # self.gripper_right.move_finger(width=0.03, speed=0.15)
 
         # REACH POSE
         reach_future = self.reach_pose_right.execute_skill(
@@ -66,7 +66,7 @@ class Orchestrator(Node):
 
         # GRASP CONNECTOR
         input("Press Enter to close gripper")
-        close_future = self.gripper_right.close_gripper()
+        # close_future = self.gripper_right.close_gripper()
         end_pose = PoseStamped()
         end_pose.header.frame_id = self.kit1_frame_name
 
@@ -90,7 +90,7 @@ class Orchestrator(Node):
 
         # OPEN GRIPPER
         input("Press Enter to move gripper")
-        self.gripper_right.move_finger(width=0.03, speed=0.1)
+        # self.gripper_right.move_finger(width=0.03, speed=0.1)
         input("Press Enter to move robot to holder.")
         end_pose.pose.position.z = -0.30
         end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
@@ -109,7 +109,7 @@ class Orchestrator(Node):
         )
         # GRASP SCREW 1
         input("Press Enter to close gripper on screw 1.")
-        move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
+        # move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
         input("Press Enter to move robot to deposit screw 1.")
 
         end_pose.pose.position.z = -0.10
@@ -131,7 +131,7 @@ class Orchestrator(Node):
         )
         # OPEN GRIPPER
         input("Press Enter to move gripper")
-        self.gripper_right.move_finger(width=0.03, speed=0.1)
+        # self.gripper_right.move_finger(width=0.03, speed=0.1)
         input("Press Enter to move gripper")
 
         end_pose.pose.position.z = -0.30
@@ -154,7 +154,7 @@ class Orchestrator(Node):
         )
         # GRASP SCREW 2
         input("Press Enter to close gripper on screw 2.")
-        move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
+        # move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
         input("Press Enter to move robot to deposit screw 2.")
 
         end_pose.header.frame_id = self.kit1_screw2_frame_name
@@ -176,7 +176,7 @@ class Orchestrator(Node):
         )
         # OPEN GRIPPER
         input("Press Enter to move gripper")
-        self.gripper_right.move_finger(width=0.03, speed=0.1)
+        # self.gripper_right.move_finger(width=0.03, speed=0.1)
         input("Press Enter to move gripper")
 
         end_pose.pose.position.z = -0.30
