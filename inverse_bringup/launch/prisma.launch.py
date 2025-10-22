@@ -74,12 +74,7 @@ def launch_setup(context, *args, **kwargs):
             0.40234,
             0.3247,
             -0.0015857,
-        ], [
-            0.017181,
-            0.99967,
-            -0.016636,
-            0.0088522,
-        ]),
+        ], [1.0, 0.0, 0.0, 0.0]),
     }
 
     for frame_name, (translation, rotation) in frames.items():
@@ -100,7 +95,6 @@ def launch_setup(context, *args, **kwargs):
             ]
         )
         nodes_to_start.append(node)
-
 
     multimanual_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
