@@ -30,6 +30,7 @@ DiscreteDmpMotion::DiscreteDmpMotion(
         if (newpath[i].ori.coeffs().dot(newpath[i - 1].ori.coeffs()) < 0.0)
             newpath[i].ori.coeffs() *= -1.0;
     }
+    _initial_pose = newpath.front();
 
     const auto demo = Demonstration::builder(newpath.size())
                               .assign_position(newpath)
@@ -56,7 +57,7 @@ DiscreteDmpMotion::DiscreteDmpMotion(
         const DmpParameters&   parameters,
         mdv::Logger::SharedPtr logger
 ) :
-        DmpMotionInterface(parameters, dt, std::move(logger)) {
+        DmpMotionInterface(parameters, dt, std::move(logger)), _initial_pose(y0) {
     _dmp.dmp().weights() = dmp_weights;
     _dmp.goal_state.y()  = g;
     optimise_tau(y0, g, parameters.max_vel);
