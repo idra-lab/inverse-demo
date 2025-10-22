@@ -28,8 +28,8 @@ controller_manager:
 /**/right_gravity_compensation:
   ros__parameters:
     end_effector_link: "franka1_fr3_link0"
-    ft_sensor_ref_link: "franka1_fr3_hand_tcp" 
-    robot_base_link: "franka1_fr3_link0"
+    ft_sensor_ref_link: "franka1_tcp" 
+    robot_base_link: "world"
     compensate_gravity: false 
     compensate_coriolis: false 
     command_current_configuration: false
@@ -50,8 +50,8 @@ controller_manager:
 /**/left_gravity_compensation:
   ros__parameters:
     end_effector_link: "franka2_fr3_link0"
-    ft_sensor_ref_link: "franka2_fr3_hand_tcp" 
-    robot_base_link: "franka2_fr3_link0"
+    ft_sensor_ref_link: "franka2_tcp" 
+    robot_base_link: "world"
     compensate_gravity: false 
     compensate_coriolis: false 
     command_current_configuration: false
@@ -92,9 +92,9 @@ controller_manager:
       - 1.0
     cartesian_impedance_controller:
       type: cartesian_impedance_controller/CartesianImpedanceController
-    robot_base_link: "franka2_fr3_link0"
-    ft_sensor_ref_link: "franka2_fr3_hand_tcp" 
-    end_effector_link: "franka2_fr3_hand_tcp"
+    robot_base_link: "world"
+    ft_sensor_ref_link: "franka2_tcp" 
+    end_effector_link: "franka2_tcp"
     compensate_gravity: false 
     compensate_coriolis: false 
     command_current_configuration: false
@@ -119,13 +119,13 @@ controller_manager:
     max_impedance_force: 10.0 # (N) maximum task force
     delta_tau_max: 1.0 # (Nm) maximum torque increment in one control cycle
     stiffness:
-        trans_x: 1000.0
-        trans_y: 1000.0
-        trans_z: 1000.0
-        rot_x: 100.0
-        rot_y: 100.0
-        rot_z: 100.0
-    nullspace_stiffness: 10.0
+        trans_x: 1200.0
+        trans_y: 1200.0
+        trans_z: 1200.0
+        rot_x: 200.0
+        rot_y: 200.0
+        rot_z: 200.0
+    nullspace_stiffness: 5.0
     nullspace_desired_configuration:
       - 0.5
       - 0.0
@@ -134,9 +134,9 @@ controller_manager:
       - 0.0
       - 2.0
       - 1.0
-    robot_base_link: "franka1_fr3_link0"
-    ft_sensor_ref_link: "franka1_fr3_hand_tcp" 
-    end_effector_link: "franka1_fr3_hand_tcp"
+    robot_base_link: "world"
+    ft_sensor_ref_link: "franka1_tcp" 
+    end_effector_link: "franka1_tcp"
     compensate_gravity: false 
     compensate_coriolis: false 
     command_current_configuration: false
@@ -158,8 +158,8 @@ controller_manager:
 
 right_motion_control_handle:
   ros__parameters:
-    robot_base_link: "franka1_fr3_link0"
-    end_effector_link: "franka1_fr3_hand_tcp"
+    robot_base_link: "world"
+    end_effector_link: "franka1_tcp"
     target_frame_topic: "/franka_right/desired_pose"
     joints:
       - franka1_fr3_joint1
@@ -172,8 +172,8 @@ right_motion_control_handle:
 
 left_motion_control_handle:
   ros__parameters:
-    robot_base_link: "franka2_fr3_link0"
-    end_effector_link: "franka2_fr3_hand_tcp"
+    robot_base_link: "world"
+    end_effector_link: "franka2_tcp"
     target_frame_topic: "/franka_left/desired_pose"
     joints:
       - franka2_fr3_joint1

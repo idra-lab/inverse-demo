@@ -62,7 +62,7 @@ SkillLearner::on_learn_skill_request(
             "Starting listening for a demonstration of {}s",
             req->registration_duration_secs
     );
-    const auto sampling_period = std::chrono::milliseconds(10);
+    const auto sampling_period = std::chrono::milliseconds(5);
 
     const auto timer = create_wall_timer(sampling_period, [this, &full_demo]() {
         const auto pose = _system->current_ee_position();
@@ -88,31 +88,45 @@ SkillLearner::on_learn_skill_request(
     const auto first_sample = std::find_if(
             full_demo.cbegin(),
             full_demo.cend(),
-            [y0](const auto& y) -> bool { return (y0.pos - y.pos).norm() > 1e-2; }
+            [y0](const auto& y) -> bool { return (y0.pos - y.pos).norm() > 5e-3; }
     );
-    const auto first_sample_id = std::max<long>(
-            std::distance(full_demo.cbegin(), first_sample) - 30, 0
-    );
+    const auto first_sample_id =
+            std::max<long>(std::distance(full_demo.cbegin(), first_sample) - 100, 0);
     logger().info("First sample id: {}", first_sample_id);
 
     const auto last_sample = rs::find_if(
             full_demo.crbegin(),
             full_demo.crend(),
-            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 1e-2; }
+            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 3e-3; }
     );
-    const auto last_sample_id = std::max<std::size_t>(
-            std::distance(full_demo.crbegin(), last_sample) + 30, full_demo.size()
+    logger().info("Distance: {}", std::distance(full_demo.crbegin(), last_sample));
+    const auto last_sample_id = std::min<std::size_t>(
+            full_demo.size() - std::distance(full_demo.crbegin(), last_sample) + 100, full_demo.size()
     );
+    // const auto last_sample_id = full_demo.size() - 1;
+
     logger().info("Last sample id: {}", last_sample_id);
 
     std::vector<Se3Pose> demo;
-    for (std::size_t i = first_sample_id; i < last_sample_id; ++i)
+    for (std::size_t i = first_sample_id; i < last_sample_id; ++i) {
+        if (full_demo[i].ori.w() < 0.0) logger().warn("Id: {} - wrong equator", i);
         demo.emplace_back(full_demo[i]);
+    }
 
     if (demo.size() < 20) {
         resp->success = false;
         logger().error("Processed demonstration has {} samples!", demo.size());
         return;
+    }
+
+    for (long i = demo.size() - 2; i >= 0; --i) {
+        if (demo[i].ori.coeffs().dot(demo[i + 1].ori.coeffs()) < 0.0)
+            demo[i].ori.coeffs() *= -1.0;
+    }
+
+    for (std::size_t i = demo.size() - 1; i < demo.size() - 1; ++i) {
+        if (demo[i].ori.coeffs().dot(demo[i + 1].ori.coeffs()) < 0.0)
+            logger().warn("Quaternion switch {}", i);
     }
 
     DmpParameters p;
