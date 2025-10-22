@@ -1,4 +1,3 @@
-from geometry_msgs.msg import PoseStamped
 from inverse_msgs.srv import ExecuteSkill
 from concurrent.futures import Future
 
@@ -6,9 +5,9 @@ from concurrent.futures import Future
 class SkillExecutor:
     """Handles calling the ExecuteSkill service using an existing node (non-async)."""
 
-    def __init__(self, node, action_name="execute_skill"):
+    def __init__(self, node, srv_name="execute_skill"):
         self.node = node
-        self.client = self.node.create_client(ExecuteSkill, action_name)
+        self.client = self.node.create_client(ExecuteSkill, srv_name)
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info("Waiting for ExecuteSkill service...")
 
@@ -19,7 +18,7 @@ class SkillExecutor:
         final_pose,
         use_learned_initial=True,
         use_learned_final=False,
-        max_vel=0.1,
+        max_vel=0.15,
     ):
         """Call the ExecuteSkill service and return a concurrent.futures.Future."""
         req = ExecuteSkill.Request()

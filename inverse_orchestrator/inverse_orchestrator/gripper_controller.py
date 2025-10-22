@@ -49,8 +49,8 @@ class GripperController:
         goal.width = width
         goal.speed = speed
         goal.force = force
-        goal.epsilon.inner = 0.005
-        goal.epsilon.outer = 0.005
+        goal.epsilon.inner = 0.05
+        goal.epsilon.outer = 0.05
 
         self.node.get_logger().info(f"Closing gripper with force {force:.1f} N")
         return self._send_grasp_goal(goal, "Close")
