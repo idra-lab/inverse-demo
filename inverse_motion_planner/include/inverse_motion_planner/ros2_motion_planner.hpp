@@ -24,6 +24,11 @@
 #include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
 #include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
+#if MDV_WITH_RERUN_SDK
+#include "mdv/rerun.hpp"
+#include "rerun.hpp"
+#endif
+
 class Ros2MotionPlanner : public rclcpp::Node {
 public:
     using Se3Pose   = MotionPlanner::Se3Pose;
@@ -38,11 +43,12 @@ public:
     // clang-format on
 
 private:
-    mutable mdv::Logger::SharedPtr         _logger     = nullptr;
-    std::unique_ptr<Ros2PlannerParameters> _parameters = nullptr;
-    std::unique_ptr<Ros2RobotSystem>       _system     = nullptr;
-    std::unique_ptr<MotionPlanner>         _planner    = nullptr;
-    std::unique_ptr<SkillDatabase>         _skill_db   = nullptr;
+    mutable mdv::Logger::SharedPtr          _logger     = nullptr;
+    std::unique_ptr<Ros2PlannerParameters>  _parameters = nullptr;
+    std::unique_ptr<Ros2RobotSystem>        _system     = nullptr;
+    std::unique_ptr<MotionPlanner>          _planner    = nullptr;
+    std::unique_ptr<SkillDatabase>          _skill_db   = nullptr;
+    std::unique_ptr<rerun::RecordingStream> _rerun      = nullptr;
 
     std::string _db_file;
 

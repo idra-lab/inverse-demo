@@ -1,5 +1,6 @@
 #include "inverse_motion_planner/ros2_motion_planner.hpp"
 
+#include <cstdint>
 #include <Eigen/Geometry>
 #include <filesystem>
 #include <gsl/assert>
@@ -198,6 +199,11 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
 
     _db_file  = declare_parameter("skill_database", SkillDatabase::default_database());
     _skill_db = std::make_unique<SkillDatabase>(_db_file, _logger);
+
+#ifdef MDV_WITH_RERUN_SDK
+    _rerun = std::make_unique<rerun::RecordingStream>("inverse_motion_planner");
+    _rerun->spawn().exit_on_failure();
+#endif
 };
 
 //   ____      _ _ _                _
@@ -437,6 +443,27 @@ Ros2MotionPlanner::setup_reference_publisher(const std::string& link_name) {
     );
 }
 
+#ifdef MDV_WITH_RERUN_SDK
+void
+log_reference(
+        rerun::RecordingStream&           rerun,
+        const std::string&                prefix,
+        const Ros2MotionPlanner::Se3Pose& pose
+) {
+    static int64_t tick = 0;
+    rerun.set_time_sequence("tick", tick);
+
+    rerun.log(fmt::format("/position/{}/x", prefix), rerun::Scalars{pose.pos(0)});
+    // rerun.log(fmt::format("/position/{}/y", prefix), rerun::Scalars{pose.pos(1)});
+    // rerun.log(fmt::format("/position/{}/z", prefix), rerun::Scalars{pose.pos(2)});
+    // rerun.log(fmt::format("/orientation/{}/x", prefix), rerun::Scalars{pose.ori.x()});
+    // rerun.log(fmt::format("/orientation/{}/y", prefix), rerun::Scalars{pose.ori.y()});
+    // rerun.log(fmt::format("/orientation/{}/z", prefix), rerun::Scalars{pose.ori.z()});
+    rerun.log(fmt::format("/orientation/{}/w", prefix), rerun::Scalars{pose.ori.w()});
+    ++tick;
+}
+#endif
+
 void
 Ros2MotionPlanner::activate_reference_broadcasting() {
     const double dt = planner().parameters().get_dt();
@@ -455,6 +482,16 @@ Ros2MotionPlanner::activate_reference_broadcasting() {
 
         auto       ref        = Se3Pose(planner().step());
         const auto ref_framed = Se3Framed(ref, planner().parameters().get_base_link());
+#ifdef MDV_WITH_RERUN_SDK
+        static std::size_t k = 0;
+        if (++k % 10 == 0) {
+            log_reference(*_rerun, "reference", ref);
+            log_reference(*_rerun, "goal", planner().current_motion().final_pose());
+            log_reference(
+                    *_rerun, "initial", planner().current_motion().initial_pose()
+            );
+        }
+#endif
         _reference_publisher->publish(mdv::ros2::to_pose_message(ref_framed));
     };
 
