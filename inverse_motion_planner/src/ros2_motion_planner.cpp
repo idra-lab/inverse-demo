@@ -378,9 +378,10 @@ Ros2MotionPlanner::on_execute_skill_request(
 
     const auto skill = _skill_db->get_skill(req->skill_name);
     if (!skill.has_value()) {
-        logger().info("Skill {} is not present in database!", req->skill_name);
+        logger().warn("Skill {} is not present in database!", req->skill_name);
         return;
     }
+    logger().info("Enqueuing skill {}", req->skill_name);
 
     const auto msg_y0 =
             planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));

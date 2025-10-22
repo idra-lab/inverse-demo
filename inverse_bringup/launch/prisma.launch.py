@@ -23,6 +23,7 @@ from launch.actions import (
     OpaqueFunction,
     RegisterEventHandler,
     ExecuteProcess,
+    TimerAction,
 )
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition, UnlessCondition
@@ -43,7 +44,7 @@ def launch_setup(context, *args, **kwargs):
         "kit1_connector_grasp": ([
             0.41213,
             -0.06693,
-            0.36593,
+            0.37593,
         ], [
             0.99956,
             -0.028345,
@@ -52,29 +53,21 @@ def launch_setup(context, *args, **kwargs):
         ]),
         "kit1_screw1": ([
             0.36733,
-            -0.037261,
-            0.36326,
-        ], [
-            0.73267,
-            0.68043,
-            0.0017886,
-            0.014111,
-        ]),
+            -0.039261,
+            0.35526,
+        ], [1.0, 0.0, 0.0, 0.0]),
         "kit1_screw2": ([
             0.36556,
             -0.0093178,
-            0.36734,
-        ], [
-            0.70538,
-            0.70865,
-            0.015247,
-            0.0041137,
-        ]),
+            0.35534,
+        ], [1.0, 0.0, 0.0, 0.0]),
         "kit1_connector_deposit": ([
             0.40234,
             0.3247,
             -0.0015857,
         ], [1.0, 0.0, 0.0, 0.0]),
+        "kit1_screw1_deposit": ([0.41492, 0.32703, 0.008657], [0.0, 1.0, 0.0, 0.0]),
+        "kit1_screw2_deposit": ([0.38403, 0.32274, 0.011815], [0.0, 1.0, 0.0, 0.0]),
     }
 
     for frame_name, (translation, rotation) in frames.items():
@@ -185,6 +178,18 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
+    start_controller = ExecuteProcess(
+        cmd=[
+            'ros2',
+            'service',
+            'call',
+            '/right_planner/set_broadcast_state',
+            'std_srvs/srv/SetBool',
+            '{data: true}'
+        ],
+        output='screen'
+    )
+
     right_planner_node = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=right_controller_spawner,
@@ -202,6 +207,10 @@ def launch_setup(context, *args, **kwargs):
                             "parameters.yaml"
                         ),
                     ],
+                ),
+                TimerAction(
+                    period=2.0,
+                    actions=[start_controller],
                 )
             ]
         )

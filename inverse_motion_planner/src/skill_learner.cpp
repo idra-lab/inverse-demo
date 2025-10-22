@@ -97,12 +97,13 @@ SkillLearner::on_learn_skill_request(
     const auto last_sample = rs::find_if(
             full_demo.crbegin(),
             full_demo.crend(),
-            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 1e-3; }
+            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 3e-3; }
     );
-    // const auto last_sample_id = std::min<std::size_t>(
-    //         std::distance(full_demo.crbegin(), last_sample) + 100, full_demo.size()
-    // );
-    const auto last_sample_id = full_demo.size() - 1;
+    logger().info("Distance: {}", std::distance(full_demo.crbegin(), last_sample));
+    const auto last_sample_id = std::min<std::size_t>(
+            full_demo.size() - std::distance(full_demo.crbegin(), last_sample) + 100, full_demo.size()
+    );
+    // const auto last_sample_id = full_demo.size() - 1;
 
     logger().info("Last sample id: {}", last_sample_id);
 
