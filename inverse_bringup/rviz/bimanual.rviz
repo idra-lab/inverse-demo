@@ -314,7 +314,7 @@ Visualization Manager:
         franka1_fr3_leftfinger:
           Value: false
         franka1_fr3_link0:
-          Value: false
+          Value: true
         franka1_fr3_link1:
           Value: false
         franka1_fr3_link2:
@@ -481,7 +481,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.6701574325561523
+      Distance: 1.469738483428955
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -496,10 +496,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5953984260559082
+      Pitch: 0.7453984022140503
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.70858097076416
+      Yaw: 5.353582859039307
     Saved: ~
 Window Geometry:
   Displays:

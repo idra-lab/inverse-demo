@@ -73,98 +73,98 @@ class Orchestrator(Node):
         #     final_pose=end_pose, max_vel=0.1
         # )
 
-        # # GRASP CONNECTOR
-        # input("Press Enter to close gripper")
-        # close_future = self.gripper_right.close_gripper()
-        # end_pose = PoseStamped()
-        # end_pose.header.frame_id = self.kit1_frame_name
+        # GRASP CONNECTOR
+        input("Press Enter to close gripper")
+        close_future = self.gripper_right.close_gripper()
+        time.sleep(2)
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_frame_name
 
-        # # MOVE TO DEPOSIT
-        # input("Press Enter to move robot to holder.")
-        # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = -0.20
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # MOVE TO DEPOSIT
+        end_pose.pose.position.z = -0.10
+        end_pose.header.frame_id = self.kit1_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = -0.20
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = 0.0
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.03, speed=0.1)
-        # input("Press Enter to move robot to holder.")
-        # end_pose.pose.position.z = -0.30
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # MOVE TO SCREW 1
+        # OPEN GRIPPER
+        input("Press Enter to move gripper")
+        self.gripper_right.move_finger(width=0.03, speed=0.1)
+        time.sleep(2)
+        end_pose.pose.position.z = -0.30
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        # MOVE TO SCREW 1
+        end_pose.pose.position.z = -0.10
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = -0.0
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        # GRASP SCREW 1
+        input("Press Enter to close gripper on screw 1.")
+        move_future = self.gripper_right.close_gripper(width=0.006, speed=0.1)
+        time.sleep(2)
+
         # end_pose.pose.position.z = -0.10
         # end_pose.header.frame_id = self.kit1_screw1_frame_name
         # skill_future = self.reach_pose_right.execute_skill(
         #     final_pose=end_pose, max_vel=0.1
         # )
-        # end_pose.pose.position.z = -0.0
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # GRASP SCREW 1
-        # input("Press Enter to close gripper on screw 1.")
-        # move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
-        # input("Press Enter to move robot to deposit screw 1.")
 
-        # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_screw1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # DEPOSIT SCREW 1
+        end_pose.pose.position.z = -0.15
+        end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = 0.0
+        end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        # OPEN GRIPPER
+        input("Press Enter to move gripper")
+        self.gripper_right.move_finger(width=0.019, speed=0.1)
+        time.sleep(2)
 
-        # # DEPOSIT SCREW 1
-        # end_pose.pose.position.z = -0.15
-        # end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.03, speed=0.1)
-        # input("Press Enter to move gripper")
-
-        # end_pose.pose.position.z = -0.30
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        end_pose.pose.position.z = -0.40
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
         # #############
 
-        # # MOVE TO SCREW 2
-        # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_screw2_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = -0.0
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # GRASP SCREW 2
-        # input("Press Enter to close gripper on screw 2.")
-        # move_future = self.gripper_right.close_gripper(width=0.015, speed=0.1)
-        # input("Press Enter to move robot to deposit screw 2.")
+        # MOVE TO SCREW 2
+        end_pose.pose.position.z = -0.10
+        end_pose.header.frame_id = self.kit1_screw2_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = -0.0
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        # GRASP SCREW 2
+        input("Press Enter to close gripper on screw 2.")
+        move_future = self.gripper_right.close_gripper(width=0.0, speed=0.1)
+        time.sleep(2)
 
         # end_pose.header.frame_id = self.kit1_screw2_frame_name
         # end_pose.pose.position.z = -0.10
@@ -182,6 +182,21 @@ class Orchestrator(Node):
                     "Waiting for human to move away before depositing screw 2..."
                 )
                 time.sleep(0.1)
+        # DEPOSIT SCREW 2
+        end_pose.pose.position.z = -0.15
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = 0.0
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        # OPEN GRIPPER
+        input("Press Enter to move gripper")
+        self.gripper_right.move_finger(width=0.01, speed=0.1)
+        time.sleep(1)
 
             self.get_logger().info(
                 "\n\n\nHuman moved away, continuing orchestration..."

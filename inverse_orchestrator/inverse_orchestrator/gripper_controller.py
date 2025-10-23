@@ -43,7 +43,7 @@ class GripperController:
         self.node.get_logger().info(f"Opening gripper to {width:.3f} m")
         return self._send_grasp_goal(goal, "Open")
 
-    def close_gripper(self, width=0.0, speed=0.05, force=30.0):
+    def close_gripper(self, width=0.0, speed=0.02, force=30.0):
         """Close gripper using Grasp action. Returns Future."""
         goal = Grasp.Goal()
         goal.width = width

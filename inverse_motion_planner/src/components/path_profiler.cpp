@@ -2,7 +2,9 @@
 
 #include <Eigen/Dense>
 
+#include <mdv/dmp/dmp_utilities.hpp>
 #include <range/v3/all.hpp>
+
 
 namespace rs = ::ranges;
 namespace rv = ::ranges::views;
@@ -13,16 +15,9 @@ public:
 
     MDV_NODISCARD std::vector<double>
                   build_profile(std::size_t n_samples) const override {
-        std::size_t pre_post_samples = n_samples / 10 - 1;
-        std::size_t midsamples       = n_samples - 2 * pre_post_samples;
-        assert(pre_post_samples < n_samples);
-
-        const Eigen::VectorXd ramp =
-                Eigen::VectorXd::LinSpaced(static_cast<long>(midsamples), 0.0, 1.0);
-
-        const auto begin = rv::repeat(0.0) | rv::take(pre_post_samples);
-        const auto end   = rv::repeat(1.0) | rv::take(pre_post_samples);
-        return rv::concat(begin, ramp, end) | rs::to_vector;
+        return mdv::poly_5th(
+                Eigen::VectorXd::LinSpaced(static_cast<long>(n_samples), 0.0, 1.0)
+        );
     }
 };
 
