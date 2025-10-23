@@ -29,7 +29,7 @@ class SkillExecutor:
         req.final_pose = final_pose
         req.max_vel = max_vel
 
-        self.node.get_logger().info(f"Executing skill: {skill_name}")
+        # self.node.get_logger().info(f"Executing skill: {skill_name}")
 
         service_future = self.client.call_async(req)
         final_future = Future()
@@ -38,12 +38,12 @@ class SkillExecutor:
             try:
                 result = fut.result()
                 final_future.set_result(result.success)
-                self.node.get_logger().info(
+                self.node.get_logger().warn(
                     f"Skill execution success: {result.success}"
                 )
             except Exception as e:
                 final_future.set_result(False)
-                self.node.get_logger().error(f"Skill execution failed: {e}")
+                # self.node.get_logger().error(f"Skill execution failed: {e}")
 
         service_future.add_done_callback(callback)
         return final_future

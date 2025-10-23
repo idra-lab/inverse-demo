@@ -21,7 +21,9 @@ class ReachPosition_Class:
         req.desired_pos = final_pose
         req.max_vel = max_vel
 
-        self.node.get_logger().info(f"Reaching pose: {final_pose}")
+        self.node.get_logger().warn(
+            f"Reaching pose: {final_pose}, frame_id: {final_pose.header.frame_id}"
+        )
         service_future = self.client.call_async(req)
         final_future = Future()
 
@@ -29,12 +31,12 @@ class ReachPosition_Class:
             try:
                 result = fut.result()
                 final_future.set_result(result.success)
-                self.node.get_logger().info(
-                    f"Reach pose execution success: {result.success}"
-                )
+                # self.node.get_logger().info(
+                #     f"Reach pose execution success: {result.success}"
+                # )
             except Exception as e:
                 final_future.set_result(False)
-                self.node.get_logger().error(f"Reach pose execution failed: {e}")
+                # self.node.get_logger().error(f"Reach pose execution failed: {e}")
 
         service_future.add_done_callback(callback)
         return final_future
