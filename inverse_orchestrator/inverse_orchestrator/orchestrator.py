@@ -8,7 +8,9 @@ from inverse_orchestrator.skill_executor import SkillExecutor
 from inverse_orchestrator.gripper_controller import GripperController
 import time
 
-HUMAN_DISTANCE_TRIGGER = 0.2  # meters
+from inverse_orchestrator.smpl_model import SMPLModel
+
+HUMAN_DISTANCE_TRIGGER = 0.3  # meters
 
 
 class Orchestrator(Node):
@@ -19,7 +21,7 @@ class Orchestrator(Node):
 
         # Instantiate action modules with this node
 
-        # franka right
+        # # franka right
         self.skill_exec_right = SkillExecutor(self, "right_planner/execute_skill")
         self.gripper_right = GripperController(
             self, "franka1/franka_gripper/grasp", "franka1/franka_gripper/move"
@@ -28,11 +30,12 @@ class Orchestrator(Node):
             self, "right_planner/reach_position"
         )
         self.base_link1 = "franka1_fr3_link0"
+
         # franka left
-        self.skill_exec_left = SkillExecutor(self, "left_planner/execute_skill")
-        self.gripper_left = GripperController(
-            self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
-        )
+        # self.skill_exec_left = SkillExecutor(self, "left_planner/execute_skill")
+        # self.gripper_left = GripperController(
+        #     self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
+        # )
         # self.reach_pose_left = ReachPosition(self, "left_planner/reach_position")
         self.base_link2 = "franka2_fr3_link0"
 
@@ -45,8 +48,10 @@ class Orchestrator(Node):
 
         self.get_logger().info("Orchestrator initialized and ready.")
 
+        self.smpl = SMPLModel(self, "/smpl_markers")
+
         # WAIT SMPL
-        while self.get_shortest_distance("kit1_screw2_deposit") is not None:
+        while self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit") is not None:
             self.get_logger().warn("Waiting for SMPL model data...")
             time.sleep(0.5)
 
@@ -55,23 +60,35 @@ class Orchestrator(Node):
     def orchestrate(self):
         """Example orchestration routine combining primitives."""
 
-        # end_pose = PoseStamped()
-        # end_pose.header.frame_id = self.kit1_frame_name
-        # end_pose.pose.position.z = -0.10
+        # while rclpy.ok():
+        #     data = self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
+        #     if data is None:
+        #         self.get_logger().info(f"None data!")
+        #         continue
+        #     if data < HUMAN_DISTANCE_TRIGGER:
+        #         self.get_logger().info("Unsafe")
+        #     else:
+        #         self.get_logger().info("Safe")
 
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.03, speed=0.15)
+        #     time.sleep(0.1)
 
-        # # REACH POSE
-        # reach_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # # input("Press Enter to move robot above kit1 connector.")
-        # reach_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_frame_name
+        end_pose.pose.position.z = -0.10
+
+        # OPEN GRIPPER
+        input("Press Enter to move gripper")
+        self.gripper_right.move_finger(width=0.03, speed=0.15)
+
+        # REACH POSE
+        reach_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
+        end_pose.pose.position.z = 0.0
+        # input("Press Enter to move robot above kit1 connector.")
+        reach_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
         # GRASP CONNECTOR
         input("Press Enter to close gripper")
@@ -121,11 +138,11 @@ class Orchestrator(Node):
         move_future = self.gripper_right.close_gripper(width=0.006, speed=0.1)
         time.sleep(2)
 
-        # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_screw1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        end_pose.pose.position.z = -0.10
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
         # DEPOSIT SCREW 1
         end_pose.pose.position.z = -0.15
@@ -166,22 +183,25 @@ class Orchestrator(Node):
         move_future = self.gripper_right.close_gripper(width=0.0, speed=0.1)
         time.sleep(2)
 
-        # end_pose.header.frame_id = self.kit1_screw2_frame_name
-        # end_pose.pose.position.z = -0.10
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        end_pose.header.frame_id = self.kit1_screw2_frame_name
+        end_pose.pose.position.z = -0.10
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
         # WAIT HUMAN BEFORE DEPOSITING
         while rclpy.ok():
-            while (
-                self.get_shortest_distance("kit1_screw2_deposit")
-                < HUMAN_DISTANCE_TRIGGER
-            ):
+            dist =  self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
+
+            while (dist is None or dist < HUMAN_DISTANCE_TRIGGER ):
                 self.get_logger().info(
                     "Waiting for human to move away before depositing screw 2..."
                 )
+                dist =  self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
                 time.sleep(0.1)
+
+            break
+
         # DEPOSIT SCREW 2
         end_pose.pose.position.z = -0.15
         end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
@@ -198,30 +218,22 @@ class Orchestrator(Node):
         self.gripper_right.move_finger(width=0.01, speed=0.1)
         time.sleep(1)
 
-            self.get_logger().info(
-                "\n\n\nHuman moved away, continuing orchestration..."
-            )
+        self.get_logger().info(
+            "\n\n\nHuman moved away, continuing orchestration..."
+        )
 
-        # # DEPOSIT SCREW 2
-        # end_pose.pose.position.z = -0.15
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.03, speed=0.1)
-        # input("Press Enter to move gripper")
+        # DEPOSIT SCREW 2
+        end_pose.pose.position.z = -0.35
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
-        # end_pose.pose.position.z = -0.30
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        end_pose.pose.position.z = -0.1
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        skill_future = self.reach_pose_right.execute_skill(
+            final_pose=end_pose, max_vel=0.1
+        )
 
     # def orchestrate(self):
     #     """Example orchestration routine combining primitives."""
