@@ -20,3 +20,8 @@ graph TD;
     D-->G(Task 2-3);
     E-->H(Task 1);
 ```
+## Installation
+TODO: specify vcs import dependencies
+
+### Human Body Tracker
+To install the human body tracker, please follow the instructions in the [human bo  dy tracker repository](https://github.com/idra-lab/smpl_ros) which also needs the [torchure_smplx](https://github.com/Hydran00/torchure_smplx).
