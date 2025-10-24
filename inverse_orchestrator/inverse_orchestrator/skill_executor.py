@@ -14,8 +14,8 @@ class SkillExecutor:
     def execute_skill(
         self,
         skill_name,
-        initial_pose,
-        final_pose,
+        initial_pose=None,
+        final_pose=None,
         use_learned_initial=True,
         use_learned_final=False,
         max_vel=0.15,
@@ -23,10 +23,14 @@ class SkillExecutor:
         """Call the ExecuteSkill service and return a concurrent.futures.Future."""
         req = ExecuteSkill.Request()
         req.skill_name = skill_name
-        req.use_learned_initial_pose = use_learned_initial
-        req.use_learned_final_pose = use_learned_final
-        req.initial_pose = initial_pose
-        req.final_pose = final_pose
+        req.use_learned_initial_pose = (initial_pose is None)
+        req.use_learned_final_pose = (final_pose is None)
+        self.node.get_logger().info(f"use initial = {req.use_learned_initial_pose}")
+        self.node.get_logger().info(f"use final = {req.use_learned_final_pose}")
+        if initial_pose:
+            req.initial_pose = initial_pose
+        if final_pose:
+            req.final_pose = final_pose
         req.max_vel = max_vel
 
         # self.node.get_logger().info(f"Executing skill: {skill_name}")

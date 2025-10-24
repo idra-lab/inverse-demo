@@ -97,7 +97,7 @@ SkillLearner::on_learn_skill_request(
     const auto last_sample = rs::find_if(
             full_demo.crbegin(),
             full_demo.crend(),
-            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 3e-3; }
+            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 1e-3; }
     );
     logger().info("Distance: {}", std::distance(full_demo.crbegin(), last_sample));
     const auto last_sample_id = std::min<std::size_t>(

@@ -67,8 +67,15 @@ def launch_setup(context, *args, **kwargs):
             0.003,
         ], [1.0, 0.0, 0.0, 0.0]),
         # "kit1_screw1_deposit": ([0.41692, 0.32603, 0.01], [0.97579, -0.21575, 0.03461, -0.0088881]),
-        "kit1_screw1_deposit": ([0.41462, 0.32599, 0.011266], [0.8697, -0.4918, 0.038902, -0.015386]),
-        "kit1_screw2_deposit": ([0.38403, 0.32274, 0.011815], [0.97579, -0.21575, 0.03461, -0.0088881]),
+        "kit1_screw1_deposit": ([0.41462, 0.32599,
+                                 0.011266], [0.8697, -0.4918, 0.038902, -0.015386]),
+        "kit1_screw2_deposit": ([0.38403, 0.32274,
+                                 0.011815], [0.97579, -0.21575, 0.03461, -0.0088881]),
+        "kit2_connector_grasp": ([0.84966, 0.61668, 0.089922], [0.0, 1.0, 0.0, 0.0]),
+        "kit2_connector_deposit": ([0.77434, 0.37998, 0.062065], [0.0, -0.707, 0.0, 0.707]), # -0.042815, -0.71512; 0.056894; 0.69537
+
+        # "kit2_connector_deposit": ([0.76681, 0.40815,
+        #                             0.062111], [-0.062374, -0.72562, 0.04997, 0.68344]),
     }
 
     for frame_name, (translation, rotation) in frames.items():
@@ -158,28 +165,21 @@ def launch_setup(context, *args, **kwargs):
     )
 
     left_planner_node = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=left_controller_spawner,
-            on_exit=[
-                Node(
-                    package="inverse_motion_planner",
-                    executable="motion_planner",
-                    name="left_motion_planner",
-                    output="screen",
-                    namespace="left_planner",
-                    parameters=[
-                        os.path.join(
-                            get_package_share_path("inverse_bringup"),
-                            "config",
-                            "parameters.yaml"
-                        ),
-                    ],
-                )
-            ]
-        )
+        event_handler=OnProcessExit(target_action=left_controller_spawner, on_exit=[])
     )
 
-    start_controller = ExecuteProcess(
+    start_controller_left = ExecuteProcess(
+        cmd=[
+            'ros2',
+            'service',
+            'call',
+            '/left_planner/set_broadcast_state',
+            'std_srvs/srv/SetBool',
+            '{data: true}'
+        ],
+        output='screen'
+    )
+    start_controller_right = ExecuteProcess(
         cmd=[
             'ros2',
             'service',
@@ -191,40 +191,44 @@ def launch_setup(context, *args, **kwargs):
         output='screen'
     )
 
-    right_planner_node = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=right_controller_spawner,
-            on_exit=[
-                Node(
-                    package="inverse_motion_planner",
-                    executable="motion_planner",
-                    name="right_motion_planner",
-                    output="screen",
-                    namespace="right_planner",
-                    parameters=[
-                        os.path.join(
-                            get_package_share_path("inverse_bringup"),
-                            "config",
-                            "parameters.yaml"
-                        ),
-                    ],
-                ),
-                TimerAction(
-                    period=2.0,
-                    actions=[start_controller],
-                )
-            ]
-        )
-    )
-
     nodes_to_start += [
         multimanual_launch,
         franka1_collision_behavior,
-        franka2_collision_behavior,
+        franka2_collision_behavior,  
         left_controller_spawner,
-        right_controller_spawner,
-        left_planner_node,
-        right_planner_node,
+        # right_controller_spawner,
+        Node(
+            package="inverse_motion_planner",
+            executable="motion_planner",
+            name="left_motion_planner",
+            output="screen",
+            namespace="left_planner",
+            parameters=[
+                os.path.join(
+                    get_package_share_path("inverse_bringup"),
+                    "config",
+                    "parameters.yaml"
+                ),
+            ],
+        ),
+        Node(
+            package="inverse_motion_planner",
+            executable="motion_planner",
+            name="right_motion_planner",
+            output="screen",
+            namespace="right_planner",
+            parameters=[
+                os.path.join(
+                    get_package_share_path("inverse_bringup"),
+                    "config",
+                    "parameters.yaml"
+                ),
+            ],
+        ),
+        TimerAction(
+            period=5.0,
+            actions=[start_controller_left, start_controller_right],
+        )
     ]
     return nodes_to_start
 

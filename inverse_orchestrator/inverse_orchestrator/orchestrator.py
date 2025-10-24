@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from inverse_orchestrator.reach_position import ReachPosition, ReachPosition_Class
 import rclpy
+import os
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from rclpy.executors import MultiThreadedExecutor
@@ -32,11 +33,11 @@ class Orchestrator(Node):
         self.base_link1 = "franka1_fr3_link0"
 
         # franka left
-        # self.skill_exec_left = SkillExecutor(self, "left_planner/execute_skill")
-        # self.gripper_left = GripperController(
-        #     self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
-        # )
-        # self.reach_pose_left = ReachPosition(self, "left_planner/reach_position")
+        self.skill_exec_left = SkillExecutor(self, "left_planner/execute_skill")
+        self.gripper_left = GripperController(
+            self, "franka2/franka_gripper/grasp", "franka2/franka_gripper/move"
+        )
+        self.reach_pose_left = ReachPosition_Class(self, "left_planner/reach_position")
         self.base_link2 = "franka2_fr3_link0"
 
         self.kit1_frame_name = "kit1_connector_grasp"
@@ -58,6 +59,40 @@ class Orchestrator(Node):
         self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
     def orchestrate(self):
+        # self.task1()  
+        self.task2()
+
+    def task2(self):
+        pose = PoseStamped()
+
+        input("Press to start")
+        self.gripper_left.move_finger(width=0.037, speed=0.08)
+        pose.header.frame_id = "kit2_connector_grasp"
+        self.skill_exec_left.execute_skill("home_to_kit2_connector", max_vel=0.09, final_pose=pose)
+
+        input("Close the gripper")
+        close_future = self.gripper_left.close_gripper(force=70.0)
+        time.sleep(3)
+        self.skill_exec_left.execute_skill("kit2_connector_grasp_prepare_peg", max_vel=0.09)
+        # self.skill_exec_left.execute_skill("kit2_connector_to_hole", max_vel=0.09, final_pose=peg_pose)
+        # pose.header.frame_id = "kit2_connector_deposit"
+        # self.skill_exec_left.execute_skill("kit2_connector_peg_in_hole", final_pose=pose,max_vel=0.03)
+        pose.header.frame_id = "kit2_connector_deposit"
+        pose.pose.position.z = -0.05
+        self.reach_pose_left.execute_skill(pose, max_vel=0.03)
+        pose.pose.position.z = 0.0
+        self.reach_pose_left.execute_skill(pose, max_vel=0.03)
+        pose = PoseStamped()
+        pose.header.frame_id = "kit2_connector_deposit"
+        self.skill_exec_left.execute_skill("peg_in_hole", final_pose=pose)
+
+        input("Press to lower stiffness")
+        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 300.0")
+        # os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_r 300.0")
+        # os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 300.0")
+
+
+    def task1(self):
         """Example orchestration routine combining primitives."""
 
         # while rclpy.ok():

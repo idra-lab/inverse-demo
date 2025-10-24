@@ -376,6 +376,17 @@ Ros2MotionPlanner::on_execute_skill_request(
 ) {
     resp->success = false;
 
+    if (req->skill_name == "peg_in_hole") {
+        const auto pose = mdv::ros2::get_pose(req->final_pose);
+        logger().info("Request for peg_in_hole on pose {}", mdv::ros2::describe(pose));
+        auto motion = RawTrajectoryMotion::peg_in_hole(
+                pose, planner().parameters(), planner().system()
+        );
+        planner().motion_queue().append_motion(std::move(motion));
+        resp->success = true;
+        return;
+    }
+
     const auto skill = _skill_db->get_skill(req->skill_name);
     if (!skill.has_value()) {
         logger().warn("Skill {} is not present in database!", req->skill_name);
@@ -383,12 +394,15 @@ Ros2MotionPlanner::on_execute_skill_request(
     }
     logger().info("Enqueuing skill {}", req->skill_name);
 
-    const auto msg_y0 =
-            planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
-    const auto msg_g = planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
 
-    const auto y0 = req->use_learned_initial_pose ? skill.value().initial_pose : msg_y0;
-    const auto g  = req->use_learned_final_pose ? skill.value().final_pose : msg_g;
+    const auto y0 =
+            req->use_learned_initial_pose
+                    ? skill.value().initial_pose
+                    : planner().display_in_base(mdv::ros2::get_pose(req->initial_pose));
+    const auto g =
+            req->use_learned_final_pose
+                    ? skill.value().final_pose
+                    : planner().display_in_base(mdv::ros2::get_pose(req->final_pose));
     // const auto y0 = skill.value().initial_pose;
     // const auto g  = skill.value().final_pose;
 

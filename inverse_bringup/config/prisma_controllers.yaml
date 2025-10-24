@@ -75,12 +75,12 @@ controller_manager:
     max_impedance_force: 10.0 # (N) maximum task force
     delta_tau_max: 1.0 # (Nm) maximum torque increment in one control cycle
     stiffness:
-        trans_x: 1000.0
-        trans_y: 1000.0
-        trans_z: 1000.0
-        rot_x: 10.0
-        rot_y: 10.0
-        rot_z: 10.0
+        trans_x: 1600.0
+        trans_y: 1600.0
+        trans_z: 900.0
+        rot_x: 100.0
+        rot_y: 100.0
+        rot_z: 100.0
     nullspace_stiffness: 10.0
     nullspace_desired_configuration:
       - -1.39

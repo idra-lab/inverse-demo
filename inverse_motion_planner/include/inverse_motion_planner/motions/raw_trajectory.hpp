@@ -8,10 +8,17 @@
 #include "inverse_motion_planner/components/motion.hpp"
 #include "inverse_motion_planner/interfaces/parameters_interface.hpp"
 #include "inverse_motion_planner/interfaces/robot_system_interface.hpp"
+#include "inverse_motion_planner/motion_planner.hpp"
 
 class RawTrajectoryMotion : public Motion {
 public:
     using Se3Trajectory = std::vector<Se3Pose>;
+
+    static std::unique_ptr<RawTrajectoryMotion> peg_in_hole(
+            const MotionPlanner::Se3Framed&  pose,
+            const PlannerParameterInterface& params,
+            const RobotSystemInterface&      robot
+    );
 
     RawTrajectoryMotion(
             const Se3Trajectory&             traj,
