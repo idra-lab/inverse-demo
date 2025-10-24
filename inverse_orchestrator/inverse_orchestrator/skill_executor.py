@@ -25,8 +25,8 @@ class SkillExecutor:
         req.skill_name = skill_name
         req.use_learned_initial_pose = (initial_pose is None)
         req.use_learned_final_pose = (final_pose is None)
-        self.node.get_logger().info(f"use initial = {req.use_learned_initial_pose}")
-        self.node.get_logger().info(f"use final = {req.use_learned_final_pose}")
+        # self.node.get_logger().info(f"use initial = {req.use_learned_initial_pose}")
+        # self.node.get_logger().info(f"use final = {req.use_learned_final_pose}")
         if initial_pose:
             req.initial_pose = initial_pose
         if final_pose:
@@ -42,9 +42,9 @@ class SkillExecutor:
             try:
                 result = fut.result()
                 final_future.set_result(result.success)
-                self.node.get_logger().warn(
-                    f"Skill execution success: {result.success}"
-                )
+                # self.node.get_logger().warn(
+                #     f"Skill execution success: {result.success}"
+                # )
             except Exception as e:
                 final_future.set_result(False)
                 # self.node.get_logger().error(f"Skill execution failed: {e}")

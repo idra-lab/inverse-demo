@@ -79,7 +79,7 @@ class SMPLModel:
             return None
 
         # Update TF position
-        self.node.get_logger().info(f"Frame pos: {self.latest_frame_position}")
+        # self.node.get_logger().info(f"Frame pos: {self.latest_frame_position}")
 
         min_distance = float("inf")
         for pt in self.keypoints:

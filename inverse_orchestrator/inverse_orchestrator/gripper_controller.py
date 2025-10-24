@@ -52,7 +52,7 @@ class GripperController:
         goal.epsilon.inner = 0.05
         goal.epsilon.outer = 0.05
 
-        self.node.get_logger().info(f"Closing gripper with force {force:.1f} N")
+        # self.node.get_logger().info(f"Closing gripper with force {force:.1f} N")
         return self._send_grasp_goal(goal, "Close")
 
     def _send_grasp_goal(self, goal, action_name="Grasp"):
@@ -63,17 +63,17 @@ class GripperController:
         def goal_response_callback(fut):
             goal_handle = fut.result()
             if not goal_handle.accepted:
-                self.node.get_logger().warn(f"{action_name} goal rejected!")
+                # self.node.get_logger().warn(f"{action_name} goal rejected!")
                 final_future.set_result(False)
                 return
-            self.node.get_logger().info(f"{action_name} goal accepted.")
+            # self.node.get_logger().info(f"{action_name} goal accepted.")
             get_result_future = goal_handle.get_result_async()
             get_result_future.add_done_callback(result_callback)
 
         def result_callback(fut):
             result = fut.result().result
             success = result.success
-            self.node.get_logger().info(f"{action_name} success: {success}")
+            # self.node.get_logger().info(f"{action_name} success: {success}")
             final_future.set_result(success)
 
         goal_future.add_done_callback(goal_response_callback)
@@ -86,26 +86,26 @@ class GripperController:
         goal.width = width
         goal.speed = speed
 
-        self.node.get_logger().info(
-            f"Moving gripper finger to width {width:.3f} m with speed {speed:.3f}"
-        )
+        # self.node.get_logger().info(
+        #     f"Moving gripper finger to width {width:.3f} m with speed {speed:.3f}"
+        # )
         goal_future = self.move_client.send_goal_async(goal)
         final_future = Future()
 
         def goal_response_callback(fut):
             goal_handle = fut.result()
             if not goal_handle.accepted:
-                self.node.get_logger().warn("Move goal rejected!")
+                # self.node.get_logger().warn("Move goal rejected!")
                 final_future.set_result(False)
                 return
-            self.node.get_logger().info("Move goal accepted.")
+            # self.node.get_logger().info("Move goal accepted.")
             get_result_future = goal_handle.get_result_async()
             get_result_future.add_done_callback(result_callback)
 
         def result_callback(fut):
             result = fut.result().result
             success = result.success
-            self.node.get_logger().info(f"Move success: {success}")
+            # self.node.get_logger().info(f"Move success: {success}")
             final_future.set_result(success)
 
         goal_future.add_done_callback(goal_response_callback)

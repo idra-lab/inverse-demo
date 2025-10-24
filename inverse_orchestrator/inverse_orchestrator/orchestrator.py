@@ -11,7 +11,7 @@ import time
 
 from inverse_orchestrator.smpl_model import SMPLModel
 
-HUMAN_DISTANCE_TRIGGER = 0.3  # meters
+HUMAN_DISTANCE_TRIGGER = 0.40 # meters
 
 
 class Orchestrator(Node):
@@ -52,9 +52,9 @@ class Orchestrator(Node):
         self.smpl = SMPLModel(self, "/smpl_markers")
 
         # WAIT SMPL
-        while self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit") is not None:
-            self.get_logger().warn("Waiting for SMPL model data...")
-            time.sleep(0.5)
+        # while self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit") is not None:
+        #     self.get_logger().warn("Waiting for SMPL model data...")
+        #     time.sleep(0.5)
 
         self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
@@ -63,31 +63,80 @@ class Orchestrator(Node):
         self.task2()
 
     def task2(self):
+
+        #     time.sleep(0.1)
         pose = PoseStamped()
 
+
+        MAX_VEL = 0.07
         input("Press to start")
         self.gripper_left.move_finger(width=0.037, speed=0.08)
         pose.header.frame_id = "kit2_connector_grasp"
-        self.skill_exec_left.execute_skill("home_to_kit2_connector", max_vel=0.09, final_pose=pose)
+        self.skill_exec_left.execute_skill("home_to_kit2_connector", max_vel=MAX_VEL, final_pose=pose)
 
         input("Close the gripper")
+        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 3000.0")
         close_future = self.gripper_left.close_gripper(force=70.0)
         time.sleep(3)
-        self.skill_exec_left.execute_skill("kit2_connector_grasp_prepare_peg", max_vel=0.09)
+        self.skill_exec_left.execute_skill("kit2_connector_grasp_prepare_peg", max_vel=MAX_VEL)
         # self.skill_exec_left.execute_skill("kit2_connector_to_hole", max_vel=0.09, final_pose=peg_pose)
         # pose.header.frame_id = "kit2_connector_deposit"
         # self.skill_exec_left.execute_skill("kit2_connector_peg_in_hole", final_pose=pose,max_vel=0.03)
         pose.header.frame_id = "kit2_connector_deposit"
         pose.pose.position.z = -0.05
-        self.reach_pose_left.execute_skill(pose, max_vel=0.03)
+        self.reach_pose_left.execute_skill(pose, max_vel=0.015)
         pose.pose.position.z = 0.0
-        self.reach_pose_left.execute_skill(pose, max_vel=0.03)
+        self.reach_pose_left.execute_skill(pose, max_vel=0.015)
+        
+        input("Press to lower stiffness")
+        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_x 4000.0")
+        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_y 4000.0")
+        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 800.0")
         pose = PoseStamped()
         pose.header.frame_id = "kit2_connector_deposit"
         self.skill_exec_left.execute_skill("peg_in_hole", final_pose=pose)
 
-        input("Press to lower stiffness")
-        os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 300.0")
+        while rclpy.ok():
+            data = self.smpl.get_keypoints_shortest_distance("kit2_connector_deposit")
+            if data is None:
+                self.get_logger().info(f"None data!")
+                continue
+            if data < HUMAN_DISTANCE_TRIGGER:
+                self.get_logger().info("Unsafe: Human close -> Stopping peg in hole")
+                time.sleep(1.0)
+                break
+            else:
+                self.get_logger().info("Safe: Human far")
+        
+        os.system("ros2 service call /left_planner/safe_stop std_srvs/srv/Trigger \{\}")
+        self.get_logger().warn("\nSafe stop triggered! Human is screwing")
+
+        while rclpy.ok():
+            data = self.smpl.get_keypoints_shortest_distance("kit2_connector_deposit")
+            if data is None:
+                self.get_logger().info(f"None data!")
+                continue
+            if data > HUMAN_DISTANCE_TRIGGER:
+                self.get_logger().info(f"Safe: Continuin execution as distance is: {data}")
+                time.sleep(1.0)
+                break
+            else:
+                self.get_logger().info(f"Unsafe: Human is screwing as distance is: {data}")
+                time.sleep(1.0)
+        
+        self.gripper_left.move_finger(width=0.05, speed=0.15)
+        input("Press to move away")
+
+        pose = PoseStamped()
+        pose.header.frame_id = "kit2_connector_deposit"
+        pose.pose.position.z = -0.08
+        self.reach_pose_left.execute_skill(pose, max_vel=0.015)
+
+
+
+        
+
+
         # os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_r 300.0")
         # os.system("ros2 param set /left_cartesian_impedance_controller stiffness.trans_z 300.0")
 
