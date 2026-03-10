@@ -12,6 +12,11 @@ include(CTest)
 set(CMAKE_CXX_STANDARD 20)
 set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 
+
+
+list(APPEND CMAKE_PREFIX_PATH "..//mdv_cpp_lib/cmake/install/rerun_sdk")
+find_package(rerun_sdk REQUIRED)
+
 macro(find_and_log_required package)
     find_package(${package} REQUIRED)
     message(STATUS "Package ${package} found at ${${package}_DIR}")
@@ -55,6 +60,14 @@ add_library(
     src/ros2/ros2_motion_parameters.cpp
     src/ros2/ros2_robot_system.cpp
 )
+
+# target_compile_definitions(
+#     motion_planner_commons
+#     PRIVATE MDV_WITH_RERUN_SDK=0
+
+# )
+
+
 target_include_directories(
     motion_planner_commons
     PUBLIC
@@ -66,6 +79,10 @@ target_link_libraries(
     Eigen3::Eigen
     mdvcpplib::mdvcpplib
     nlohmann_json::nlohmann_json
+)
+target_compile_options(
+    motion_planner_commons
+    PRIVATE -UMDV_WITH_RERUN_SDK
 )
 ament_target_dependencies(
     motion_planner_commons
