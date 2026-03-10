@@ -20,6 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "orchestrator = inverse_orchestrator.orchestrator:main",
+            "orchestrator_test = inverse_orchestrator.orchestrator_test:main",
         ],
     },
 )

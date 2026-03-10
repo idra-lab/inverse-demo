@@ -1,0 +1,21 @@
+# Global parameters that may be used by different nodes
+# /**:
+#   ros__parameters:
+
+/**/motion_planner:
+  ros__parameters:
+    debug_prints: True
+    debug_lib: False
+    integration_timestep: 0.008
+    frame_topic_name: "/target_frame"
+    base_link: base_link
+    ee_link: tool0
+
+/**/skill_learner:
+  ros__parameters:
+    debug_prints: True
+    debug_lib: False
+    integration_timestep: 0.008
+    frame_topic_name: "/target_frame"
+    base_link: base_link
+    ee_link: tool0
