@@ -49,6 +49,7 @@ public:
 
     rclcpp::CallbackGroup::SharedPtr _cli_cbk_group    = nullptr;
     rclcpp::CallbackGroup::SharedPtr _server_cbk_group = nullptr;
+    rclcpp::CallbackGroup::SharedPtr _timer_cbk_group  = nullptr;
 
     using GetParameters                  = rcl_interfaces::srv::GetParameters;
     using ParamGetterClient              = rclcpp::Client<GetParameters>::SharedPtr;

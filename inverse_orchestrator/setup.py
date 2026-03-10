@@ -20,7 +20,9 @@ setup(
     entry_points={
         "console_scripts": [
             "orchestrator = inverse_orchestrator.orchestrator:main",
-            "orchestrator_test = inverse_orchestrator.orchestrator_test:main",
+            "move_relative_test = inverse_orchestrator.tests.move_relative_test:main",
+            "learn_skill_test = inverse_orchestrator.tests.learn_skill_test:main",
+            "execute_skill_test = inverse_orchestrator.tests.execute_skill_test:main",
         ],
     },
 )

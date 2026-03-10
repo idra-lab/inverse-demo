@@ -1,136 +1,196 @@
 #include "inverse_motion_planner/skill_learner.hpp"
 
+#include <algorithm>
 #include <chrono>
+#include <thread>
+#include <vector>
+
 #include <rmw/qos_profiles.h>
 
 #include <mdv/ros2/conversions.hpp>
 #include <mdv/ros2/logger.hpp>
 #include <mdv/utils/logging_extras.hpp>
 #include <range/v3/all.hpp>
-#include <rcl_interfaces/msg/detail/parameter__struct.hpp>
-#include <rclcpp/callback_group.hpp>
-#include <rclcpp/parameter.hpp>
 
 #include "inverse_motion_planner/components/skill_database.hpp"
 #include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
 #include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 
 namespace rs = ::ranges;
-namespace rv = ::ranges::views;
 
-SkillLearner::SkillLearner() : rclcpp::Node("skill_learner") {
+SkillLearner::SkillLearner() : rclcpp::Node("skill_learner")
+{
     _logger     = std::make_shared<mdv::ros2::RosLogger>(get_logger());
     _parameters = std::make_unique<Ros2PlannerParameters>(_logger, this);
     _system     = std::make_unique<Ros2RobotSystem>(_logger, this, _parameters.get());
+
     logger().info("Interfaces initialised!");
 
     _base_link = _parameters->get_base_link();
     _ee_link   = _parameters->get_ee_link();
+
     logger().info("base link: {}", _base_link);
     logger().info("end-effector link: {}", _ee_link);
 
     _cli_cbk_group =
-            create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
     _server_cbk_group =
-            create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-    const std::string node_name =
-            declare_parameter("node_name", "left_cartesian_impedance_controller");
+    auto cbk =
+        [this](const LearnSkill::Request::ConstSharedPtr req,
+               LearnSkill::Response::SharedPtr resp)
+        {
+            on_learn_skill_request(req, resp);
+        };
 
-    auto cbk = [this](const LearnSkill::Request::ConstSharedPtr req,
-                      LearnSkill::Response::SharedPtr           resp) {
-        on_learn_skill_request(req, resp);
-    };
     _learn_skill_server = create_service<LearnSkill>(
-            "learn_skill", cbk, rmw_qos_profile_services_default, _server_cbk_group
-    );
+        "learn_skill",
+        cbk,
+        rmw_qos_profile_services_default,
+        _server_cbk_group);
 
     _skill_db =
-            std::make_unique<SkillDatabase>(SkillDatabase::default_database(), _logger);
+        std::make_unique<SkillDatabase>(SkillDatabase::default_database(), _logger);
 }
 
-void
-SkillLearner::on_learn_skill_request(
-        const LearnSkill::Request::ConstSharedPtr& req,
-        LearnSkill::Response::SharedPtr&           resp
-) {
+void SkillLearner::on_learn_skill_request(
+    const LearnSkill::Request::ConstSharedPtr& req,
+    LearnSkill::Response::SharedPtr& resp)
+{
     resp->success = false;
-    std::vector<Se3Pose> full_demo;
-    full_demo.reserve(10000);
 
-    logger().info(
-            "Starting listening for a demonstration of {}s",
-            req->registration_duration_secs
-    );
-    const auto sampling_period = std::chrono::milliseconds(5);
-
-    const auto timer = create_wall_timer(sampling_period, [this, &full_demo]() {
-        const auto pose = _system->current_ee_position();
-        full_demo.push_back(pose);
-    });
-
-    using std::chrono::high_resolution_clock;
-    const auto start      = high_resolution_clock::now();
-    bool       can_record = true;
-    while (can_record) {
-        const auto   stop  = high_resolution_clock::now();
-        const double delta = std::chrono::duration<double>(stop - start).count();
-        can_record         = delta < req->registration_duration_secs;
-    }
-    timer->reset();
-    logger().info("Recorded {} entries in the demonstration", full_demo.size());
-
-    const auto y0 = full_demo.front();
-    const auto g  = full_demo.back();
-    logger().info("y0: {}", mdv::ros2::describe(y0));
-    logger().info("g: {}", mdv::ros2::describe(g));
-
-    const auto first_sample = std::find_if(
-            full_demo.cbegin(),
-            full_demo.cend(),
-            [y0](const auto& y) -> bool { return (y0.pos - y.pos).norm() > 5e-3; }
-    );
-    const auto first_sample_id =
-            std::max<long>(std::distance(full_demo.cbegin(), first_sample) - 100, 0);
-    logger().info("First sample id: {}", first_sample_id);
-
-    const auto last_sample = rs::find_if(
-            full_demo.crbegin(),
-            full_demo.crend(),
-            [g](const auto& y) -> bool { return (g.pos - y.pos).norm() > 1e-3; }
-    );
-    logger().info("Distance: {}", std::distance(full_demo.crbegin(), last_sample));
-    const auto last_sample_id = std::min<std::size_t>(
-            full_demo.size() - std::distance(full_demo.crbegin(), last_sample) + 100, full_demo.size()
-    );
-    // const auto last_sample_id = full_demo.size() - 1;
-
-    logger().info("Last sample id: {}", last_sample_id);
-
-    std::vector<Se3Pose> demo;
-    for (std::size_t i = first_sample_id; i < last_sample_id; ++i) {
-        if (full_demo[i].ori.w() < 0.0) logger().warn("Id: {} - wrong equator", i);
-        demo.emplace_back(full_demo[i]);
-    }
-
-    if (demo.size() < 20) {
-        resp->success = false;
-        logger().error("Processed demonstration has {} samples!", demo.size());
+    if (req->registration_duration_secs <= 0.0)
+    {
+        logger().error("registration_duration_secs must be > 0");
         return;
     }
 
-    for (long i = demo.size() - 2; i >= 0; --i) {
-        if (demo[i].ori.coeffs().dot(demo[i + 1].ori.coeffs()) < 0.0)
-            demo[i].ori.coeffs() *= -1.0;
+    if (req->num_basis == 0)
+    {
+        logger().error("num_basis must be > 0");
+        return;
     }
 
-    for (std::size_t i = demo.size() - 1; i < demo.size() - 1; ++i) {
-        if (demo[i].ori.coeffs().dot(demo[i + 1].ori.coeffs()) < 0.0)
-            logger().warn("Quaternion switch {}", i);
+    logger().info(
+        "Starting listening for a demonstration of {} s",
+        req->registration_duration_secs);
+
+    constexpr auto sampling_period = std::chrono::milliseconds(5);
+    const auto duration =
+        std::chrono::duration<double>(req->registration_duration_secs);
+
+    std::vector<Se3Pose> demo_copy;
+    demo_copy.reserve(static_cast<std::size_t>(
+        req->registration_duration_secs / 0.005 + 100.0));
+
+    const auto start = std::chrono::steady_clock::now();
+
+    while (rclcpp::ok() && (std::chrono::steady_clock::now() - start) < duration)
+    {
+        try
+        {
+            demo_copy.push_back(_system->current_ee_position());
+        }
+        catch (const std::exception& e)
+        {
+            logger().error("Failed to read current end-effector pose: {}", e.what());
+            return;
+        }
+        catch (...)
+        {
+            logger().error("Failed to read current end-effector pose: unknown exception");
+            return;
+        }
+
+        std::this_thread::sleep_for(sampling_period);
+    }
+
+    logger().info("Recorded {} entries in the demonstration", demo_copy.size());
+
+    if (demo_copy.empty())
+    {
+        logger().error("No samples recorded");
+        return;
+    }
+
+    const auto y0 = demo_copy.front();
+    const auto g  = demo_copy.back();
+
+    logger().info("y0: {}", mdv::ros2::describe(y0));
+    logger().info("g: {}", mdv::ros2::describe(g));
+
+    const auto first_it = std::find_if(
+        demo_copy.begin(),
+        demo_copy.end(),
+        [&y0](const auto& y)
+        {
+            return (y.pos - y0.pos).norm() > 5e-3;
+        });
+
+    std::size_t first_sample_id = 0;
+    if (first_it != demo_copy.end())
+    {
+        const auto idx = static_cast<std::size_t>(
+            std::distance(demo_copy.begin(), first_it));
+        first_sample_id = (idx > 100) ? (idx - 100) : 0;
+    }
+
+    const auto last_rit = std::find_if(
+        demo_copy.rbegin(),
+        demo_copy.rend(),
+        [&g](const auto& y)
+        {
+            return (y.pos - g.pos).norm() > 1e-3;
+        });
+
+    std::size_t last_sample_id = demo_copy.size();
+    if (last_rit != demo_copy.rend())
+    {
+        const auto reverse_idx = static_cast<std::size_t>(
+            std::distance(demo_copy.rbegin(), last_rit));
+
+        const auto idx_from_front = demo_copy.size() - reverse_idx;
+        last_sample_id = std::min(idx_from_front + 100, demo_copy.size());
+    }
+
+    if (first_sample_id >= last_sample_id)
+    {
+        logger().error(
+            "Invalid crop range: first_sample_id={} last_sample_id={}",
+            first_sample_id,
+            last_sample_id);
+        return;
+    }
+
+    logger().info("First sample id: {}", first_sample_id);
+    logger().info("Last sample id: {}", last_sample_id);
+
+    std::vector<Se3Pose> demo;
+    demo.reserve(last_sample_id - first_sample_id);
+
+    for (std::size_t i = first_sample_id; i < last_sample_id; ++i)
+        demo.push_back(demo_copy[i]);
+
+    if (demo.size() < 20)
+    {
+        logger().error("Processed demonstration has only {} samples", demo.size());
+        return;
+    }
+
+    for (std::size_t i = demo.size() - 1; i > 0; --i)
+    {
+        auto& curr = demo[i];
+        auto& prev = demo[i - 1];
+
+        if (prev.ori.coeffs().dot(curr.ori.coeffs()) < 0.0)
+            prev.ori.coeffs() *= -1.0;
     }
 
     DmpParameters p;
     p.n_basis = req->num_basis;
+
     DiscreteDmpMotion motion(demo, 0.001, p, _logger);
 
     SkillDatabase::SkillData skill_data;
@@ -138,23 +198,33 @@ SkillLearner::on_learn_skill_request(
     skill_data.final_pose   = demo.back();
     skill_data.dmp_params   = p;
     skill_data.dmp_weights  = motion.dmp().dmp().weights();
+
     _skill_db->add_skill(req->skill_name, skill_data);
     _skill_db->write_database(SkillDatabase::default_database());
 
-    resp->success      = true;
+    resp->success = true;
     resp->initial_pose = mdv::ros2::to_pose_message(skill_data.initial_pose);
     resp->final_pose   = mdv::ros2::to_pose_message(skill_data.final_pose);
     resp->total_demonstration_time =
-            std::chrono::duration<double>(sampling_period).count() * demo.size();
+        std::chrono::duration<double>(sampling_period).count() *
+        static_cast<double>(demo.size());
+
+    logger().info(
+        "Skill '{}' learned successfully with {} samples",
+        req->skill_name,
+        demo.size());
 }
 
-int
-main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     rclcpp::init(argc, argv);
-    auto                                     node = std::make_shared<SkillLearner>();
+
+    auto node = std::make_shared<SkillLearner>();
+
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(node);
     executor.spin();
+
     rclcpp::shutdown();
     return 0;
 }

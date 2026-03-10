@@ -5,7 +5,7 @@
 namespace defaults {
 
 const std::string base_link = "base_link";
-const std::string ee_link   = "tcp";
+const std::string ee_link   = "tool0";
 const double      dt        = 0.001;  // 10ms
 
 }  // namespace defaults
