@@ -4,3 +4,11 @@
 [submodule "bota_ft_sensor_driver"]
 	path = bota_ft_sensor_driver
 	url = git@github.com:idra-lab/bota_ft_sensor_driver.git
+[submodule "ros2_robotiq_gripper"]
+	path = ros2_robotiq_gripper
+	url = git@github.com:PickNikRobotics/ros2_robotiq_gripper.git
+	branch = humble
+[submodule "serial"]
+	path = serial
+	url = https://github.com/tylerjw/serial.git
+	branch = ros2
