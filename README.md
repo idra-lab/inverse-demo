@@ -20,6 +20,14 @@ For the human body tracker:
 1. put in the workspace src the [`smpl_ros`](https://github.com/idra-lab/smpl_ros) library by following the instructions in the corresponding repository. 
 
 
+
+### Submodules modifications
+- Change `runtime_package` argument in `easy_ur_control/launch/easy_ur_control.launch.py` to `inverse_bringup`
+- Change F/T sensor name under `bota_ft_sensor_driver/rokubimini_serial/rokubimini_serial.launch.py to the right model (e.g. BFT-DENS-SER-M8)
+- If compilations error in `mdv_cpp_lib` arise, comment the line `#include <rerun/archetypes/series_points.hpp>` in both `rerun.cpp` and `rerun.hpp` 
+
+
+
 ### Rosdep
 
 All other dependencies for the ROS 2 packages can be easily installed through `rosdep`:
@@ -60,14 +68,14 @@ graph TD;
 
 1. On one terminal launch the following:
    ```
-   ros2 launch inverse_bringup prisma.launch.py
+   ros2 launch inverse_bringup inverse_ur.launch.py
    ```
    This will:
 
-   - create the connection with the 2 robots; robots will start using the `cartesian_compliance_controller` with the parameters defined in the [`prisma_controllers.yaml`](inverse_bringup/config/prisma_controllers.yaml) file;
+   - create the connection with the UR robot; the robot will start using the `cartesian_compliance_controller` with the parameters defined in the [`ur_controllers.yaml`](inverse_bringup/config/ur_controllers.yaml) file;
    - spawn RViz;
-   - publish all the transforms of the task. **Note:** as of now (and can be seen [here](https://github.com/idra-lab/inverse-demo/blob/faac88be8ce0415ba8300680b065f9e9fffc180c/inverse_bringup/launch/prisma.launch.py#L43-L98), the different poses are defined w.r.t. `franka1_fr3_link0`, i.e., the frame of the robot base on the right of the setup at the Prisma lab;
-   - start the motion planner for both robots.
+   - TODO: add all frames to the launch file 
+   - start the motion planner.
 
 1. For starting the execution of the actual task, on another terminal you must run the orchestrator as follows:
    ```
@@ -96,6 +104,6 @@ To record the a human skill (DMP based) that then can be executed by the robot:
    Feel free to adjust the parameters at your will. About the number of basis, chose a low number (10-12) if you need to do a simple task, while increase up to 40-50 for very complex motions.
 
 **Note:**
-When learning, only 1 trajectory of the robot is actually recorded. The recorded pose is the one of a TF2 transform of the frame specified in the [`parameters.yaml`](./inverse_bringup/config/parameters.yaml) file, specifically in the [arguments for the `skill_learner` node](https://github.com/idra-lab/inverse-demo/blob/faac88be8ce0415ba8300680b065f9e9fffc180c/inverse_bringup/config/parameters.yaml#L23-L30).
-For the setup at prisma, the `franka2_tcp` frame is reference to the TCP of the left robot, while the right robot can be recorded by `franka1_tcp`.
+When learning, only 1 trajectory of the robot is actually recorded. The recorded pose is the one of a TF2 transform of the frame specified in the [`node_parameters.yaml`](./inverse_bringup/config/node_parameters.yaml) file, specifically in the [arguments for the `skill_learner` node](https://github.com/idra-lab/inverse-demo/blob/faac88be8ce0415ba8300680b065f9e9fffc180c/inverse_bringup/config/parameters.yaml#L23-L30).
+For the setup with UR, the `tool0` frame is reference to the TCP of the robot.
 

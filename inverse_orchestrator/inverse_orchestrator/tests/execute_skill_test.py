@@ -12,8 +12,6 @@ class Orchestrator(Node):
     def __init__(self):
         super().__init__("orchestrator")
 
-        # Instantiate action modules with this node
-
         self.base_link1 = "world"
         self.get_logger().info("Orchestrator initialized and ready.")
         self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")

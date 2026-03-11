@@ -31,8 +31,8 @@ controller_manager:
     freedrive_mode_controller:
       type: ur_controllers/FreedriveModeController
 
-    # tcp_pose_broadcaster:
-    #   type: pose_broadcaster/PoseBroadcaster
+    tcp_pose_broadcaster:
+      type: pose_broadcaster/PoseBroadcaster
 
     passthrough_trajectory_controller:
       type: ur_controllers/PassthroughTrajectoryController
@@ -184,12 +184,12 @@ freedrive_mode_controller:
   ros__parameters:
     tf_prefix: "$(var tf_prefix)"
 
-# tcp_pose_broadcaster:
-#   ros__parameters:
-#     frame_id: $(var tf_prefix)base
-#     pose_name: $(var tf_prefix)tcp_pose
-#     tf:
-#       child_frame_id: $(var tf_prefix)tool0_controller
+tcp_pose_broadcaster:
+  ros__parameters:
+    frame_id: $(var tf_prefix)base
+    pose_name: $(var tf_prefix)tcp_pose
+    tf:
+      child_frame_id: $(var tf_prefix)tool0_controller
 
 tool_contact_controller:
   ros__parameters:
@@ -253,9 +253,9 @@ cartesian_compliance_controller:
         #- velocity
 
     stiffness:  # w.r.t. compliance_ref_link coordinates
-        trans_x: 200.0
-        trans_y: 200.0
-        trans_z: 200.0
+        trans_x: 1000.0
+        trans_y: 1000.0
+        trans_z: 1000.0
         rot_x: 20.0
         rot_y: 20.0
         rot_z: 20.0
@@ -360,24 +360,3 @@ end_effector_controller:
       - $(var tf_prefix)wrist_1_joint
       - $(var tf_prefix)wrist_2_joint
       - $(var tf_prefix)wrist_3_joint
-
-
-# The Robotiq 2F-85 Gripper Controller
-robotiq_gripper_controller:
-  ros__parameters:
-    joints:
-      - robotiq_85_left_knuckle_joint
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    state_publish_rate: 100.0
-    action_monitor_rate: 20.0
-    allow_partial_joints_goal: false
-
-
-
-
-
-

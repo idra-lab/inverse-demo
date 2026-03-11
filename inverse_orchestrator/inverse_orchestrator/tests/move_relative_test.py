@@ -15,7 +15,6 @@ class Orchestrator(Node):
     def __init__(self):
         super().__init__("orchestrator")
 
-        # Instantiate action modules with this node
         self.reach_pose = ReachPosition_Class(
             self, "planner/reach_position"
         )
@@ -23,11 +22,6 @@ class Orchestrator(Node):
         self.base_link1 = "world"
 
         self.get_logger().info("Orchestrator initialized and ready.")
-
-        # WAIT SMPL
-        # while self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit") is not None:
-        #     self.get_logger().warn("Waiting for SMPL model data...")
-        #     time.sleep(0.5)
 
         self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
@@ -50,28 +44,10 @@ class Orchestrator(Node):
             self.get_logger().error(f"Service call failed: {future.exception()}")
 
     
-
 def main():
     rclpy.init()
     orchestrator = Orchestrator()
-
-    # executor = MultiThreadedExecutor()
-
     orchestrator.test_move_relative()
-
-    # executor.add_node(orchestrator)
-
-    # # Start orchestration in a separate thread to avoid blocking executor
-    # import threading
-
-    # threading.Thread(target=orchestrator.orchestrate, daemon=True).start()
-
-    # try:
-    #     executor.spin()
-    # finally:
-    #     orchestrator.destroy_node()
-    #     rclpy.shutdown()
-
 
 if __name__ == "__main__":
     main()

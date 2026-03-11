@@ -39,37 +39,16 @@ from ament_index_python.packages import (
 def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = list()
-
-    # frames = {
-    #     """"kit1_connector_grasp": ([
-    #         0.41213,
-    #         -0.058,
-    #         0.37193,
-    #     ], [
-    #         0.99956,
-    #         -0.028345,
-    #         0.006056,
-    #         0.0057203,
-    #     ]),"""    }
-
-    # for frame_name, (translation, rotation) in frames.items():
-    #     node = Node(
-    #         package='tf2_ros',
-    #         executable='static_transform_publisher',
-    #         name=f'static_broadcaster_{frame_name}',
-    #         arguments=[
-    #             str(translation[0]),
-    #             str(translation[1]),
-    #             str(translation[2]),
-    #             str(rotation[0]),
-    #             str(rotation[1]),
-    #             str(rotation[2]),
-    #             str(rotation[3]),
-    #             'franka1_fr3_link0',
-    #             frame_name
-    #         ]
-    #     )
-    #     nodes_to_start.append(node)
+    
+    bota_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(
+                get_package_share_path("rokubimini_serial"),
+                "launch",
+                "rokubimini_serial.launch.py"
+            )
+        ], ),
+    )
 
     ur_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -81,8 +60,8 @@ def launch_setup(context, *args, **kwargs):
         ], ),
         launch_arguments={
             "ur_type": "ur3e",
-            "robot_ip": "192.168.100.10", # to check
-            "ctrl": "cartesian_motion_controller",
+            "robot_ip": "192.168.100.10",
+            "ctrl": "cartesian_compliance_controller",
         }.items(),
     )
 
@@ -100,8 +79,8 @@ def launch_setup(context, *args, **kwargs):
 
 
     nodes_to_start += [
+        # bota_launch,
         ur_launch,
-        # right_controller_spawner,
         Node(
             package="inverse_motion_planner",
             executable="motion_planner",

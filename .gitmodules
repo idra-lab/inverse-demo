@@ -1,6 +1,6 @@
-[submodule "easy_ur_control"]
-	path = easy_ur_control
-	url = git@github.com:idra-lab/easy_ur_control.git
 [submodule "mdv_cpp_lib"]
 	path = mdv_cpp_lib
 	url = git@github.com:matteodv99tn/mdv_cpp_lib.git
+[submodule "bota_ft_sensor_driver"]
+	path = bota_ft_sensor_driver
+	url = git@github.com:idra-lab/bota_ft_sensor_driver.git
