@@ -376,6 +376,8 @@ def launch_setup(context, *args, **kwargs):
         "force_torque_sensor_broadcaster",
         "tcp_pose_broadcaster",
         "ur_configuration_controller",
+        "robotiq_gripper_controller",           # Added for Robotiq gripper support
+        "robotiq_activation_controller",        # Adde for Robotiq gripper support
     ]
     controllers_inactive = [
         "scaled_joint_trajectory_controller",

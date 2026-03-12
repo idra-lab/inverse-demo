@@ -57,6 +57,14 @@ controller_manager:
       
     end_effector_controller:
       type: end_effector_controller/EndEffectorControl
+
+
+    # Added robotiq controllers for gripper support  
+    robotiq_gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    robotiq_activation_controller:
+      type: robotiq_controllers/RobotiqActivationController
   
 # Controller parameters
 speed_scaling_state_broadcaster:
@@ -375,6 +383,11 @@ robotiq_gripper_controller:
     state_publish_rate: 100.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: false
+
+# Added for roboyiq gripper support. This controller is responsible for activating the gripper, allowing it to open and close as needed for grasping tasks. It works in conjunction with the robotiq_gripper_controller to provide full control over the gripper's functionality.
+
+robotiq_activation_controller:
+  ros__parameters: {}
 
 
 

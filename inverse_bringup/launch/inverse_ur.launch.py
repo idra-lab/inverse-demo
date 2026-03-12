@@ -59,9 +59,11 @@ def launch_setup(context, *args, **kwargs):
             )
         ], ),
         launch_arguments={
-            "ur_type": "ur3e",
+            "ur_type": "ur10",
             "robot_ip": "192.168.100.10",
             "ctrl": "cartesian_compliance_controller",
+            # Propagate simulation mode to UR + gripper stack.
+            "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
         }.items(),
     )
 
@@ -105,7 +107,14 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    declared_arguments = []
+    declared_arguments = [
+        DeclareLaunchArgument(
+            "use_fake_hardware",
+            default_value="false",
+            # true: avoid opening real hardware drivers (UR + Robotiq).
+            description="Use fake hardware for robot and gripper",
+        )
+    ]
 
     return LaunchDescription(
         declared_arguments + [OpaqueFunction(function=launch_setup)]

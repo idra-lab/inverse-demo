@@ -50,6 +50,15 @@ def declare_args():
             default_value="true",
         )
     )
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_fake_hardware",
+            # Shared switch for ros2_control fake components in the composed robot.
+            description="Use fake hardware for UR and attached components",
+            default_value="false",
+        )
+    )
     this_package_share = get_package_share_path("easy_ur_control")
     default_rviz_path = os.path.join(this_package_share, "rviz", "rviz.rviz")
     declared_arguments.append(
@@ -80,6 +89,8 @@ def launch_setup(context, *args, **kwargs):
     base_launch_arguments={
         "ur_type": LaunchConfiguration("ur_type"),
         "robot_ip": LaunchConfiguration("robot_ip"),
+        # Forward to ur_control.launch.py so xacro receives the same mode.
+        "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
         "description_package": "easy_ur_control",
         "description_file": "ur_wrapper.xacro",
         "headless_mode": "true",

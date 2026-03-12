@@ -22,8 +22,7 @@ For the human body tracker:
 
 
 ### Submodules modifications
-- Change `runtime_package` argument in `easy_ur_control/launch/easy_ur_control.launch.py` to `inverse_bringup`
-- Change F/T sensor name under `bota_ft_sensor_driver/rokubimini_serial/rokubimini_serial.launch.py to the right model (e.g. BFT-DENS-SER-M8)
+- Change F/T sensor name under `bota_ft_sensor_driver/rokubimini_serial/rokubimini_serial.launch.py` to the right model (e.g. BFT-DENS-SER-M8)
 - If compilations error in `mdv_cpp_lib` arise, comment the line `#include <rerun/archetypes/series_points.hpp>` in both `rerun.cpp` and `rerun.hpp` 
 
 
