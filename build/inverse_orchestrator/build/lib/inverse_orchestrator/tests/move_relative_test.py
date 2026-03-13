@@ -15,11 +15,11 @@ class Orchestrator(Node):
     def __init__(self):
         super().__init__("orchestrator")
 
-        # self.reach_pose = ReachPosition_Class(
-        #     self, "planner/reach_position"
-        # )
+        self.reach_pose = ReachPosition_Class(
+            self, "planner/reach_position"
+        )
 
-        # self.base_link1 = "world"
+        self.base_link1 = "world"
 
         self.get_logger().info("Orchestrator initialized and ready.")
 

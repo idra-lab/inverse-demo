@@ -23,7 +23,8 @@ setup(
             "move_relative_test = inverse_orchestrator.tests.move_relative_test:main",
             "learn_skill_test = inverse_orchestrator.tests.learn_skill_test:main",
             "execute_skill_test = inverse_orchestrator.tests.execute_skill_test:main",
-            "test_opening_gripper = inverse_orchestrator.tests.open_robotiq_gripper:main",
+            "gripper_test = inverse_orchestrator.tests.gripper_test:main",
+            "point_to_point_test = inverse_orchestrator.tests.point_to_point_test:main",
         ],
     },
 )

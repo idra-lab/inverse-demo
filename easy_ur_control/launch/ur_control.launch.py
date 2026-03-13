@@ -382,6 +382,7 @@ def launch_setup(context, *args, **kwargs):
     controllers_inactive = [
         "scaled_joint_trajectory_controller",
         "joint_trajectory_controller",
+        "robotiq_gripper_trajectory_controller",
         "forward_velocity_controller",
         "forward_position_controller",
         "force_mode_controller",

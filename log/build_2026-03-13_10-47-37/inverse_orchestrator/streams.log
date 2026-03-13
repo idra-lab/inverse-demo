@@ -1,0 +1,76 @@
+[0.440s] Invoking command in '/home/leo/inverse_ws/src/inverse-demo/inverse_orchestrator': PYTHONPATH=/home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/inverse_orchestrator build --build-base /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build install --record /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/install.log --single-version-externally-managed install_data
+[0.653s] running egg_info
+[0.654s] creating ../build/inverse_orchestrator/inverse_orchestrator.egg-info
+[0.654s] writing ../build/inverse_orchestrator/inverse_orchestrator.egg-info/PKG-INFO
+[0.654s] writing dependency_links to ../build/inverse_orchestrator/inverse_orchestrator.egg-info/dependency_links.txt
+[0.654s] writing entry points to ../build/inverse_orchestrator/inverse_orchestrator.egg-info/entry_points.txt
+[0.654s] writing requirements to ../build/inverse_orchestrator/inverse_orchestrator.egg-info/requires.txt
+[0.654s] writing top-level names to ../build/inverse_orchestrator/inverse_orchestrator.egg-info/top_level.txt
+[0.654s] writing manifest file '../build/inverse_orchestrator/inverse_orchestrator.egg-info/SOURCES.txt'
+[0.655s] reading manifest file '../build/inverse_orchestrator/inverse_orchestrator.egg-info/SOURCES.txt'
+[0.656s] writing manifest file '../build/inverse_orchestrator/inverse_orchestrator.egg-info/SOURCES.txt'
+[0.656s] running build
+[0.656s] running build_py
+[0.656s] creating /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build
+[0.656s] creating /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib
+[0.656s] creating /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/orchestrator.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/smpl_model.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/reach_position.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/utils.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/ur_gripper_controller.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/__init__.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/skill_executor.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] copying inverse_orchestrator/gripper_controller.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator
+[0.656s] creating /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] copying inverse_orchestrator/tests/__init__.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] copying inverse_orchestrator/tests/gripper_test.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] copying inverse_orchestrator/tests/move_relative_test.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] copying inverse_orchestrator/tests/learn_skill_test.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] copying inverse_orchestrator/tests/execute_skill_test.py -> /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests
+[0.656s] running install
+[0.657s] running install_lib
+[0.657s] creating /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/orchestrator.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/smpl_model.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/reach_position.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/utils.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/ur_gripper_controller.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/__init__.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.657s] creating /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests/__init__.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.657s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests/gripper_test.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.658s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests/move_relative_test.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.658s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests/learn_skill_test.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.658s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/tests/execute_skill_test.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests
+[0.658s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/skill_executor.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.658s] copying /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build/lib/inverse_orchestrator/gripper_controller.py -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator
+[0.658s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/orchestrator.py to orchestrator.cpython-310.pyc
+[0.659s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/smpl_model.py to smpl_model.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/reach_position.py to reach_position.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/utils.py to utils.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/ur_gripper_controller.py to ur_gripper_controller.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/__init__.py to __init__.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests/__init__.py to __init__.cpython-310.pyc
+[0.660s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests/gripper_test.py to gripper_test.cpython-310.pyc
+[0.661s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests/move_relative_test.py to move_relative_test.cpython-310.pyc
+[0.661s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests/learn_skill_test.py to learn_skill_test.cpython-310.pyc
+[0.661s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/tests/execute_skill_test.py to execute_skill_test.cpython-310.pyc
+[0.661s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/skill_executor.py to skill_executor.cpython-310.pyc
+[0.662s] byte-compiling /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator/gripper_controller.py to gripper_controller.cpython-310.pyc
+[0.662s] running install_data
+[0.662s] creating /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/share/ament_index
+[0.662s] creating /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/share/ament_index/resource_index
+[0.662s] creating /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/share/ament_index/resource_index/packages
+[0.662s] copying resource/inverse_orchestrator -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/share/ament_index/resource_index/packages
+[0.662s] copying package.xml -> /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/share/inverse_orchestrator
+[0.662s] running install_egg_info
+[0.663s] Copying ../build/inverse_orchestrator/inverse_orchestrator.egg-info to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages/inverse_orchestrator-0.0.0-py3.10.egg-info
+[0.664s] running install_scripts
+[0.677s] Installing execute_skill_test script to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/inverse_orchestrator
+[0.677s] Installing gripper_test script to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/inverse_orchestrator
+[0.677s] Installing learn_skill_test script to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/inverse_orchestrator
+[0.677s] Installing move_relative_test script to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/inverse_orchestrator
+[0.677s] Installing orchestrator script to /home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/inverse_orchestrator
+[0.677s] writing list of installed files to '/home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/install.log'
+[0.690s] Invoked command in '/home/leo/inverse_ws/src/inverse-demo/inverse_orchestrator' returned '0': PYTHONPATH=/home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/leo/inverse_ws/src/inverse-demo/install/inverse_orchestrator/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/inverse_orchestrator build --build-base /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/build install --record /home/leo/inverse_ws/src/inverse-demo/build/inverse_orchestrator/install.log --single-version-externally-managed install_data

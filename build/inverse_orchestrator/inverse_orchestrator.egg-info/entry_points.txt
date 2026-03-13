@@ -1,0 +1,7 @@
+[console_scripts]
+execute_skill_test = inverse_orchestrator.tests.execute_skill_test:main
+gripper_test = inverse_orchestrator.tests.gripper_test:main
+learn_skill_test = inverse_orchestrator.tests.learn_skill_test:main
+move_relative_test = inverse_orchestrator.tests.move_relative_test:main
+orchestrator = inverse_orchestrator.orchestrator:main
+

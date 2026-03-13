@@ -61,8 +61,9 @@ controller_manager:
 
     # Added robotiq controllers for gripper support  
     robotiq_gripper_controller:
+      type: position_controllers/GripperActionController
+    robotiq_gripper_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-
     robotiq_activation_controller:
       type: robotiq_controllers/RobotiqActivationController
   
@@ -371,7 +372,19 @@ end_effector_controller:
 
 
 # The Robotiq 2F-85 Gripper Controller
+# controller params
 robotiq_gripper_controller:
+  ros__parameters:
+    default: true
+    joint: robotiq_85_left_knuckle_joint
+    use_effort_interface: true
+    use_speed_interface: true
+
+# Added for roboyiq gripper support. This controller is responsible for activating the gripper, allowing it to open and close as needed for grasping tasks. It works in conjunction with the robotiq_gripper_controller to provide full control over the gripper's functionality.
+
+robotiq_activation_controller:
+  ros__parameters: {}
+robotiq_gripper_trajectory_controller:
   ros__parameters:
     joints:
       - robotiq_85_left_knuckle_joint
@@ -380,14 +393,7 @@ robotiq_gripper_controller:
     state_interfaces:
       - position
       - velocity
-    state_publish_rate: 100.0
-    action_monitor_rate: 20.0
     allow_partial_joints_goal: false
-
-# Added for roboyiq gripper support. This controller is responsible for activating the gripper, allowing it to open and close as needed for grasping tasks. It works in conjunction with the robotiq_gripper_controller to provide full control over the gripper's functionality.
-
-robotiq_activation_controller:
-  ros__parameters: {}
 
 
 
