@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>smpl_ros</name>
+  <version>0.1.0</version>
+  <description>SMPL fitting and visualization in RViz</description>
+
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <!-- Build system -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- ROS 2 dependencies -->
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>smpl_msgs</depend>
+
+  <!-- Torchure SMPLX and LibTorch are found via CMake, not ROS 2 package system -->
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

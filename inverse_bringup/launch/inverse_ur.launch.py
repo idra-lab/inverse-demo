@@ -60,7 +60,7 @@ def launch_setup(context, *args, **kwargs):
         ], ),
         launch_arguments={
             "ur_type": "ur10",
-            "robot_ip": "192.168.100.10",
+            "robot_ip": "192.168.100.10", # TO DO TEST CONTRELLER
             "ctrl": "cartesian_compliance_controller",
             # Propagate simulation mode to UR + gripper stack.
             "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
@@ -83,20 +83,20 @@ def launch_setup(context, *args, **kwargs):
     nodes_to_start += [
         # bota_launch,
         ur_launch,
-        Node(
-            package="inverse_motion_planner",
-            executable="motion_planner",
-            name="motion_planner",
-            output="screen",
-            namespace="planner",
-            parameters=[
-                os.path.join(
-                    get_package_share_path("inverse_bringup"),
-                    "config",
-                    "node_parameters.yaml"
-                ),
-            ],
-        ),
+        # Node(
+        #     package="inverse_motion_planner",
+        #     executable="motion_planner",
+        #     name="motion_planner",
+        #     output="screen",
+        #     namespace="planner",
+        #     parameters=[
+        #         os.path.join(
+        #             get_package_share_path("inverse_bringup"),
+        #             "config",
+        #             "node_parameters.yaml"
+        #         ),
+        #     ],
+        # ),
 
         TimerAction(
             period=5.0,
