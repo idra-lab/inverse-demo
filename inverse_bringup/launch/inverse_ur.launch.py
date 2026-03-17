@@ -60,8 +60,8 @@ def launch_setup(context, *args, **kwargs):
         ], ),
         launch_arguments={
             "ur_type": "ur10",
-            "robot_ip": "192.168.100.10",
-            "ctrl": "cartesian_compliance_controller",
+            "robot_ip": "192.168.100.10", # TO DO TEST CONTRELLER
+            "ctrl": "cartesian_motion_controller",
             # Propagate simulation mode to UR + gripper stack.
             "use_fake_hardware": LaunchConfiguration("use_fake_hardware"),
         }.items(),

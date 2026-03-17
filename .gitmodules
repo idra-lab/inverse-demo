@@ -12,3 +12,6 @@
 	path = serial
 	url = https://github.com/tylerjw/serial.git
 	branch = ros2
+[submodule "grippers_ur_ros2"]
+	path = grippers_ur_ros2
+	url = https://github.com/idra-lab/grippers_ur_ros2.git

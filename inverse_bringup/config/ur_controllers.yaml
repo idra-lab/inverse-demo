@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 500  # Hz
+    update_rate: 125  # Hz
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -214,7 +214,7 @@ cartesian_compliance_controller:
     # tool.  When you specify a target_wrench, i.e. some additional forces that
     # your robot should apply to its environment, that target_wrench gets
     # applied in this frame.
-    end_effector_link: "tool0"
+    end_effector_link: "target_link"
 
     # This is usually the link directly before the first actuated joint.  All
     # controllers will build a kinematic chain from this link up to
@@ -227,7 +227,7 @@ cartesian_compliance_controller:
     # between end_effector_link and robot_base_link.  If that's not the case,
     # the controllers won't initialize and will emit an error message.
     # ft_sensor_ref_link: "ft_sensor0_wrench"
-    ft_sensor_ref_link: "tool0"
+    ft_sensor_ref_link: "target_link"
 
 
     # This is the link that the robot feels compliant about. It does not need
@@ -237,7 +237,7 @@ cartesian_compliance_controller:
     # downward pushing forces without generating unwanted offset moments.
     # On the other hand, an application could benefit from yielding a little in
     # the robot's wrist while drawing a line on a surface with a pen.
-    compliance_ref_link: "tool0"
+    compliance_ref_link: "target_link"
 
     joints:
       - shoulder_pan_joint
@@ -317,7 +317,7 @@ cartesian_motion_controller:
   ros__parameters:
 
     # See the cartesian_compliance_controller
-    end_effector_link: "tool0"
+    end_effector_link: "target_link"
     robot_base_link: "$(var tf_prefix)base_link"
     joints:
       - $(var tf_prefix)shoulder_pan_joint
@@ -371,30 +371,18 @@ end_effector_controller:
       - $(var tf_prefix)wrist_3_joint
 
 
-# The Robotiq 2F-85 Gripper Controller
-# controller params
-robotiq_gripper_controller:
-  ros__parameters:
-    default: true
-    joint: robotiq_85_left_knuckle_joint
-    use_effort_interface: true
-    use_speed_interface: true
-
-# Added for roboyiq gripper support. This controller is responsible for activating the gripper, allowing it to open and close as needed for grasping tasks. It works in conjunction with the robotiq_gripper_controller to provide full control over the gripper's functionality.
-
-robotiq_activation_controller:
-  ros__parameters: {}
 robotiq_gripper_trajectory_controller:
   ros__parameters:
     joints:
-      - robotiq_85_left_knuckle_joint
+      - finger_joint
     command_interfaces:
       - position
     state_interfaces:
       - position
       - velocity
     allow_partial_joints_goal: false
-
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
 
 
 
