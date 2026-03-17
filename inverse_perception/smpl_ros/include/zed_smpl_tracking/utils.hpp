@@ -16,7 +16,7 @@
 #include <vector>
 #include "utils/constants.hpp"
 
-#define NUM_BETAS 10
+#define NUM_BETAS 300
 std::vector<double> load_smpl_betas(const std::string &smpl_params_path) {
   std::ifstream smpl_file(smpl_params_path);
   if (!smpl_file.is_open()) {
@@ -175,9 +175,12 @@ buildSMPLMessage(const Body &body, const Eigen::Matrix4d &T_smpl_to_ros,
     msg.keypoints[j * 3 + 1] = kp_smpl.y();
     msg.keypoints[j * 3 + 2] = kp_smpl.z();
   }
-  for (size_t i = 0; i < NUM_BETAS; i++) {
-    msg.betas[i] = betas[i];
-  }
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("zed_smpl_tracking"), "KP size: "<< msg.keypoints.size());
+
+  // for (size_t i = 0; i < NUM_BETAS; i++) {
+  //   msg.betas[i] = betas[i];
+  // }
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("zed_smpl_tracking"), "Betas size: "<< msg.betas.size());
   msg.header.stamp = rclcpp::Clock().now();
   msg.header.frame_id = "map";
   return msg;
