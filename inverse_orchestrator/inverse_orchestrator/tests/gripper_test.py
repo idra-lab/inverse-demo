@@ -15,7 +15,7 @@ class Orchestrator(Node):
 
         self.gripper = URGripperController(
             self,
-            mode=URGripperController.MODE_GRIPPER_COMMAND,
+            mode=URGripperController.MODE_JOINT_TRAJECTORY,
             command_duration_sec=1,
         )
 

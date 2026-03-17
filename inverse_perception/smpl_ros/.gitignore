@@ -1,0 +1,6 @@
+*.ply
+*.obj
+build/
+.vscode/
+preprocess.py
+guide.md
