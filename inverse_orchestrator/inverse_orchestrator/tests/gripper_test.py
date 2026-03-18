@@ -9,6 +9,7 @@ class GripperTestNode(Node):
     def __init__(self):
         super().__init__("gripper_test")
         self._gripper = URGripper(node=self)
+        self.get_logger().info("GripperTestNode initialized, ready to send commands to the gripper.")
 
     def test_open(self) -> None:
         self.get_logger().info("Opening gripper...")

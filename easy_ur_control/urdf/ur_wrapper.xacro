@@ -4,6 +4,9 @@
 
     <!-- Include the standard UR robot -->
     <xacro:include filename="$(find ur_description)/urdf/ur.urdf.xacro" />
+
+    <xacro:arg name="use_fake_hardware" default="true" />
+    <xacro:arg name="com_port" default="/dev/ttyUSB0" />
     <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_140_macro.urdf.xacro" />
 
 
@@ -30,7 +33,7 @@
 
     <!-- Enable ros2_control interfaces for Robotiq and share fake-hardware mode. -->
     <xacro:robotiq_gripper name="RobotiqGripper" prefix="" parent="ft_sensor0_wrench"
-        include_ros2_control="false" use_fake_hardware="$(arg use_fake_hardware)">
+        include_ros2_control="true" use_fake_hardware="$(arg use_fake_hardware)" >
         <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:robotiq_gripper>
 

@@ -14,7 +14,7 @@ class URGripper:
             "{command: {position: 0.5, max_effort: 50.0}}"
     """
 
-    ACTION_NAME = "/robotiq_gripper/gripper/gripper_cmd"
+    ACTION_NAME = "/robotiq_gripper_controller/gripper_cmd"
 
     def __init__(
         self,

@@ -32,6 +32,7 @@
 import os.path
 from ament_index_python.packages import get_package_share_path
 
+import launch_ros
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterFile, ParameterValue
 from launch_ros.substitutions import FindPackageShare
@@ -248,6 +249,7 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(use_fake_hardware),
     )
 
+
     ur_control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
@@ -368,6 +370,7 @@ def launch_setup(context, *args, **kwargs):
             + inactive_flags
             + controllers,
         )
+    
 
     controllers_active = [
         "joint_state_broadcaster",
