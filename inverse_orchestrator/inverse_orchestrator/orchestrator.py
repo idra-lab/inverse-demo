@@ -4,7 +4,7 @@ from inverse_msgs.srv import MoveRelative
 import rclpy
 import os
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Transform
 from rclpy.executors import MultiThreadedExecutor
 from inverse_orchestrator.skill_executor import SkillExecutor
 from inverse_orchestrator.ur_gripper_controller import URGripper
@@ -21,19 +21,14 @@ class Orchestrator(Node):
     def __init__(self):
         super().__init__("orchestrator")
 
-        # Instantiate action modules with this node
-
-        # # franka right
         self.gripper = URGripper(node=self)
-        self.get_logger().info("GripperTestNode initialized.")
-
+        self.get_logger().info("Orchestrator initialized.")
 
         self.execute_learned_skill = SkillExecutor(self, "/execute_skill")
         self.execute_reach_pose = ReachPosition_Class(self, "/reach_position")
         self.base_link = "base_link"
         self.target_link = "target_link"
         
-
         self.kit1_connector_grasp_frame_name = "kit1_connector_grasp"
         self.kit1_connector_deposit_frame_name = "kit1_connector_deposit"
         self.kit1_screw1_frame_name = "kit1_screw1"
@@ -52,207 +47,165 @@ class Orchestrator(Node):
 
         self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
+
+
     def orchestrate(self):
         # self.task1()  
         self.task1()
 
+
+
     def task1(self):
-        """Example orchestration routine combining primitives."""
-
-        # while rclpy.ok():
-        #     data = self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
-        #     if data is None:
-        #         self.get_logger().info(f"None data!")
-        #         continue
-        #     if data < HUMAN_DISTANCE_TRIGGER:
-        #         self.get_logger().info("Unsafe")
-        #     else:
-        #         self.get_logger().info("Safe")
-
-        #     time.sleep(0.1)
 
 
-        # Screw pose
+        
+        move_relative_client = self.create_client(MoveRelative, "/move_relative")
+        while not move_relative_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn("Waiting for MoveRelative service...")
+        move_relative_request = MoveRelative.Request()
+        move_relative_request.relative_motion = Transform()
+
         end_pose = PoseStamped()
-        end_pose.header.frame_id = self.kit1_screw1_frame_name
-        end_pose.pose.position.z = -0.10
 
-        # # OPEN GRIPPER
-        input("Press Enter to move gripper")
+
+        # Set UP the initial gripper: open
+
+        # input("Press Enter to open gripper")
+        # self.gripper.open()
+        # time.sleep(2)
+
+        # # ── 1. CONNECTOR ──────────────────────────────────────────────────────
+
+        # OPEN GRIPPER
+        input("Press Enter to open gripper")
         self.gripper.open()
+        time.sleep(2)
 
-        # Move down using the move relative
-        # # REACH POSE
-        self.execute_reach_pose.execute_skill(
-            final_pose=end_pose, max_vel=0.1
-        )
-        input()
+        # # MOVE TO CONNECTOR GRASP POSE
+        end_pose.header.frame_id = self.kit1_connector_grasp_frame_name
+        end_pose.pose.position.z = +0.05
+        __future = self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
 
-        end_pose = PoseStamped()
-        end_pose.header.frame_id = self.kit1_screw1_frame_name
-        end_pose.pose.position.z = 0.0
+        time.sleep(10.0)
 
-        self.execute_reach_pose.execute_skill(
-            final_pose=end_pose, max_vel=0.1
-        )
+        # if __future.done():
+        #     print(__future.result())
+        #     self.get_logger().info(f"ReachPosition response")
+        # else:
+        #     self.get_logger().error(f"Service call faileed")   
 
+        # MOVE DOWN TO GRASP CONNECTOR
+        move_relative_request.relative_motion.translation.y = -0.2
+        move_future = move_relative_client.call_async(move_relative_request)
+        rclpy.spin_until_future_complete(self, move_future)
+        if move_future.result() is not None:
+            self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        else:
+            self.get_logger().error(f"Service call failed: {move_future.exception()}")
+
+        # # CLOSE GRIPPER TO GRASP CONNECTOR
+        # input("Press Enter to close gripper on connector.")
+        # self.gripper.close()
         # time.sleep(2)
-        # time.sleep(2)
-        # time.sleep(2)
-        # time.sleep(2)
-        # time.sleep(2)
 
+        # # MOVE UP
+        # move_relative_request.relative_motion.translation.z = -0.15
+        # move_future = move_relative_client.call_async(move_relative_request)
+        # rclpy.spin_until_future_complete(self, move_future)
+        # if move_future.result() is not None:
+        #     self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        # else:
+        #     self.get_logger().error(f"Service call failed: {move_future.exception()}")
 
-        # end_pose.pose.position.z = 0.0
-        # # input("Press Enter to move robot above kit1 connector.")
-        # reach_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-
-        # # GRASP CONNECTOR
-        # input("Press Enter to close gripper")
-        # close_future = self.gripper_right.close_gripper()
-        # time.sleep(2)
-        # end_pose = PoseStamped()
-        # end_pose.header.frame_id = self.kit1_frame_name
-
-        # # MOVE TO DEPOSIT
+        # # MOVE TO CONNECTOR DEPOSIT
+        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
         # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = -0.20
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
 
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.03, speed=0.1)
+        # # OPEN GRIPPER TO DEPOSIT CONNECTOR
+        # input("Press Enter to open gripper")
+        # self.gripper.open()
         # time.sleep(2)
-        # end_pose.pose.position.z = -0.30
-        # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # MOVE TO SCREW 1
-        # end_pose.pose.position.z = -0.10
+
+        # # ── 2. SCREW 1 ────────────────────────────────────────────────────────
+
+        # # MOVE TO KIT1 SCREW 1
         # end_pose.header.frame_id = self.kit1_screw1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = -0.0
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # GRASP SCREW 1
+        # end_pose.pose.position.z = -0.10
+        # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # # MOVE DOWN TO GRASP KIT1 SCREW 1
+        # move_relative_request.relative_motion.translation.z = 0.07
+        # move_future = move_relative_client.call_async(move_relative_request)
+        # rclpy.spin_until_future_complete(self, move_future)
+        # if move_future.result() is not None:
+        #     self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        # else:
+        #     self.get_logger().error(f"Service call failed: {move_future.exception()}")
+
+        # # CLOSE GRIPPER TO GRASP KIT1 SCREW 1
         # input("Press Enter to close gripper on screw 1.")
-        # move_future = self.gripper_right.close_gripper(width=0.006, speed=0.1)
+        # self.gripper.close()
         # time.sleep(2)
 
-        # end_pose.pose.position.z = -0.10
-        # end_pose.header.frame_id = self.kit1_screw1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # # MOVE UP
+        # move_relative_request.relative_motion.translation.z = -0.15
+        # move_future = move_relative_client.call_async(move_relative_request)
+        # rclpy.spin_until_future_complete(self, move_future)
+        # if move_future.result() is not None:
+        #     self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        # else:
+        #     self.get_logger().error(f"Service call failed: {move_future.exception()}")
 
-        # # DEPOSIT SCREW 1
-        # end_pose.pose.position.z = -0.15
+        # # MOVE TO SCREW 1 DEPOSIT
         # end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.019, speed=0.1)
+        # end_pose.pose.position.z = -0.10
+        # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # # OPEN GRIPPER TO DEPOSIT SCREW 1
+        # input("Press Enter to open gripper")
+        # self.gripper.open()
         # time.sleep(2)
 
-        # end_pose.pose.position.z = -0.40
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # # ── 3. SCREW 2 ────────────────────────────────────────────────────────
 
-        # # #############
-
-        # # MOVE TO SCREW 2
-        # end_pose.pose.position.z = -0.10
+        # # MOVE TO KIT1 SCREW 2
         # end_pose.header.frame_id = self.kit1_screw2_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = -0.0
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # GRASP SCREW 2
+        # end_pose.pose.position.z = -0.10
+        # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # # MOVE DOWN TO GRASP KIT1 SCREW 2
+        # move_relative_request.relative_motion.translation.z = 0.07
+        # move_future = move_relative_client.call_async(move_relative_request)
+        # rclpy.spin_until_future_complete(self, move_future)
+        # if move_future.result() is not None:
+        #     self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        # else:
+        #     self.get_logger().error(f"Service call failed: {move_future.exception()}")
+
+        # # CLOSE GRIPPER TO GRASP KIT1 SCREW 2
         # input("Press Enter to close gripper on screw 2.")
-        # move_future = self.gripper_right.close_gripper(width=0.0, speed=0.1)
+        # self.gripper.close()
         # time.sleep(2)
 
-        # end_pose.header.frame_id = self.kit1_screw2_frame_name
+        # # MOVE UP
+        # move_relative_request.relative_motion.translation.z = -0.15
+        # move_future = move_relative_client.call_async(move_relative_request)
+        # rclpy.spin_until_future_complete(self, move_future)
+        # if move_future.result() is not None:
+        #     self.get_logger().info(f"MoveRelative response: {move_future.result()}")
+        # else:
+        #     self.get_logger().error(f"Service call failed: {move_future.exception()}")
+
+        # # MOVE TO SCREW 2 DEPOSIT
+        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
         # end_pose.pose.position.z = -0.10
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
 
-        # # WAIT HUMAN BEFORE DEPOSITING
-        # while rclpy.ok():
-        #     dist =  self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
-
-        #     while (dist is None or dist < HUMAN_DISTANCE_TRIGGER ):
-        #         self.get_logger().info(
-        #             "Waiting for human to move away before depositing screw 2..."
-        #         )
-        #         dist =  self.smpl.get_keypoints_shortest_distance("kit1_screw2_deposit")
-        #         time.sleep(0.1)
-
-        #     break
-
-        # # DEPOSIT SCREW 2
-        # end_pose.pose.position.z = -0.15
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # end_pose.pose.position.z = 0.0
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-        # # OPEN GRIPPER
-        # input("Press Enter to move gripper")
-        # self.gripper_right.move_finger(width=0.01, speed=0.1)
-        # time.sleep(1)
-
-        # self.get_logger().info(
-        #     "\n\n\nHuman moved away, continuing orchestration..."
-        # )
-
-        # # DEPOSIT SCREW 2
-        # end_pose.pose.position.z = -0.35
-        # end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
-
-        # end_pose.pose.position.z = -0.1
-        # end_pose.header.frame_id = self.kit1_screw1_frame_name
-        # skill_future = self.reach_pose_right.execute_skill(
-        #     final_pose=end_pose, max_vel=0.1
-        # )
+        # # OPEN GRIPPER TO DEPOSIT SCREW 2
+        # input("Press Enter to open gripper")
+        # self.gripper.open()
+        # time.sleep(2)
 
 
 def main():
