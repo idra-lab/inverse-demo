@@ -60,6 +60,7 @@ ament_target_dependencies(zed_smpl_tracking
   tf2_ros
   cv_bridge
   compressed_depth_image_transport
+  visualization_msgs
 )
 
 # Install
