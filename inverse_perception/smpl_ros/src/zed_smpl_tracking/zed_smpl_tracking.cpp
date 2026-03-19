@@ -43,6 +43,22 @@ int main(int argc, char **argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("smpl_single_camera_node");
 
+  // ------------------------------------------------------------------ //
+  //  ROS Parameters
+  // ------------------------------------------------------------------ //
+
+  // Serial number of the ZED camera to open.
+  // 0 (default) means "open the first available camera".
+  node->declare_parameter<int>("serial_number", 0);
+  const int serial_number = node->get_parameter("serial_number").as_int();
+
+  // TF frame that will be stamped on every published message.
+  node->declare_parameter<std::string>("frame_id", "zed_camera_frame");
+  const std::string frame_id =
+      node->get_parameter("frame_id").as_string();
+
+  // ------------------------------------------------------------------ //
+
   auto smpl_pub =
       node->create_publisher<smpl_msgs::msg::Smpl>("/smpl_params", 10);
   auto image_pub =
@@ -53,13 +69,25 @@ int main(int argc, char **argv)
   auto depth_pub =
       node->create_publisher<sensor_msgs::msg::Image>("/zed/depth", 10);
 
-  // SMPLRviz uses the same frame_id as the camera so keypoints
-  // are in the same coordinate space as the depth/image data.
-  std::string frame_id = "zed_camera_frame";
   SMPLRviz rviz(node, frame_id);
 
+  // Build the InputType based on the serial_number parameter.
+  sl::InputType input_type;
+  if (serial_number > 0)
+  {
+    RCLCPP_INFO(node->get_logger(),
+                "Opening ZED with serial number: %d", serial_number);
+    input_type.setFromSerialNumber(static_cast<unsigned int>(serial_number));
+  }
+  else
+  {
+    RCLCPP_INFO(node->get_logger(),
+                "No serial number specified — opening first available ZED");
+    // Default-constructed InputType opens the first available camera.
+  }
+
   ClientPublisher client;
-  if (!client.open(sl::InputType(),
+  if (!client.open(input_type,
                    sl::COORDINATE_SYSTEM::IMAGE,
                    sl::RESOLUTION::HD2K,
                    0))
@@ -68,7 +96,8 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  RCLCPP_INFO(node->get_logger(), "ZED running...");
+  RCLCPP_INFO(node->get_logger(),
+              "ZED running | frame_id: '%s'", frame_id.c_str());
   rclcpp::Rate rate(15);
 
   sl::Bodies bodies;
@@ -139,8 +168,6 @@ int main(int argc, char **argv)
       }
 
       // Remap from ZED order to SMPL order using SMPL_TO_ZED lookup table.
-      // SMPL_TO_ZED[smpl_idx] = zed_idx, so:
-      //   kp_raw.row(smpl_idx) = body.keypoint[zed_idx]
       Eigen::Matrix<double, 24, 3> kp_raw;
       for (int smpl_idx = 0; smpl_idx < 24; ++smpl_idx)
       {
