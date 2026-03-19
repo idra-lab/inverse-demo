@@ -59,6 +59,11 @@ controller_manager:
       type: end_effector_controller/EndEffectorControl
 
 
+    # Controller for teaching
+    freedrive_mode_controller:
+      type: ur_controllers/FreedriveModeController
+
+
     # Added robotiq controllers for gripper support  
     robotiq_gripper_controller:
       type: position_controllers/GripperActionController
@@ -397,4 +402,7 @@ robotiq_activation_controller:
   ros__parameters:
     default: true
 
-
+freedrive_mode_controller:
+  ros__parameters:
+    tf_prefix: ""
+    inactive_timeout: 1

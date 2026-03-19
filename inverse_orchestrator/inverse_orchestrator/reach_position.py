@@ -20,9 +20,10 @@ class ReachPosition_Class:
         req = ReachPosition.Request()
         req.desired_pos = final_pose
         req.max_vel = max_vel
+        req.immediate_execution = True
 
         self.node.get_logger().warn(
-            f"Reaching pose: {final_pose}, frame_id: {final_pose.header.frame_id}"
+            f"Reaching pose: {final_pose}, frame_id: {final_pose.header.frame_id} immediately: {req.immediate_execution}"
         )
         service_future = self.client.call_async(req)
         final_future = Future()

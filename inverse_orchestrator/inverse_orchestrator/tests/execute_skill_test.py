@@ -19,7 +19,7 @@ class Orchestrator(Node):
     
     def test_execute_skill(self):
         self.get_logger().info("Testing ExecuteSkill service call...")
-        client = self.create_client(ExecuteSkill, "/planner/execute_skill")
+        client = self.create_client(ExecuteSkill, "/execute_skill")
         while not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().warn("Waiting for ExecuteSkill service...")
         self.get_logger().info("ExecuteSkill service is available, sending request...")

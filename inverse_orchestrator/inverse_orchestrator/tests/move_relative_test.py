@@ -28,7 +28,7 @@ class Orchestrator(Node):
     
     def test_move_relative(self):
         self.get_logger().info("Testing MoveRelative service call...")
-        client = self.create_client(MoveRelative, "/planner/move_relative")
+        client = self.create_client(MoveRelative, "/move_relative")
         while not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().warn("Waiting for MoveRelative service...")
         

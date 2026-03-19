@@ -8,40 +8,31 @@
     <xacro:arg name="use_fake_hardware" default="true" />
     <xacro:arg name="com_port" default="/dev/ttyUSB0" />
     <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_140_macro.urdf.xacro" />
-
-
-    <!-- Include your custom gripper and add the joint to connect to it, then go to the
-    ur_controllers.yaml and change the ee link in the controller parameters -->
-    <!-- <xacro:include filename="$(find gripper_description)/urdf/ur_gripper.xacro" /> -->
-    <!-- <joint name="example_gripper_joint" type="fixed">
-        <parent link="tool0" />
-        <child link="gripper_link" />
-        <origin xyz="0 0 0" rpy="0 0 0" /> -->
-    <xacro:include filename="$(find rokubimini_description)/urdf/BFT_SENS_SER_M8.urdf.xacro" />
-
-    <xacro:arg name="prefix" default="ft_sensor0" />
-    <!-- Forwarded from launch files; keeps Robotiq in fake mode for sim-only runs. -->
     <xacro:arg name="use_fake_hardware" default="false" />
-    <xacro:BFT_SENS_SER_M8 prefix="$(arg prefix)" />
+    <xacro:include filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro" />
 
-    <joint name="tool0_to_bota" type="fixed">
-        <parent link="tool0" />
-        <child link="$(arg prefix)_mounting" />
-        <origin xyz="0 0 0" rpy="0 0 -${pi/2}" />
-    </joint>
+    <xacro:ur_to_robotiq
+        prefix=""
+        parent="tool0"
+        child="robotiq_coupling"
+        rotation="${pi/2}" />
 
-
-    <!-- Enable ros2_control interfaces for Robotiq and share fake-hardware mode. -->
-    <xacro:robotiq_gripper name="RobotiqGripper" prefix="" parent="ft_sensor0_wrench"
-        include_ros2_control="true" use_fake_hardware="$(arg use_fake_hardware)" >
+    <xacro:robotiq_gripper
+        prefix=""
+        parent="robotiq_coupling"
+        name="RobotiqGripper"
+        include_ros2_control="true"
+        use_fake_hardware="$(arg use_fake_hardware)">
         <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:robotiq_gripper>
+
+
 
     <link name="target_link">
     </link>
     <joint name="final_joint" type="fixed">
-        <parent link="ft_sensor0_wrench" />
-        <origin xyz="0 0 0.24" rpy="0 0 0" />
+        <parent link="robotiq_140_base_link" />
+        <origin xyz="0 0.0 0.2" rpy="0 0 0" />
         <child link="target_link" />
     </joint>
 

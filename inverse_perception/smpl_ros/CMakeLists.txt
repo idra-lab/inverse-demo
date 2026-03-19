@@ -25,6 +25,7 @@ find_package(GLEW REQUIRED)
 SET(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 find_package(OpenCV 4.11)
+find_package(compressed_depth_image_transport REQUIRED)
 
 set(ZED_LIBS ${ZED_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
@@ -58,6 +59,7 @@ ament_target_dependencies(zed_smpl_tracking
   sensor_msgs
   tf2_ros
   cv_bridge
+  compressed_depth_image_transport
 )
 
 # Install

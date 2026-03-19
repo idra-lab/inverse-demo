@@ -17,6 +17,8 @@
   <depend>geometry_msgs</depend>
   <depend>smpl_msgs</depend>
 
+  <depend>compressed_depth_image_transport</depend>
+
   <!-- Torchure SMPLX and LibTorch are found via CMake, not ROS 2 package system -->
   <export>
     <build_type>ament_cmake</build_type>

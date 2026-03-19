@@ -19,16 +19,17 @@ class URGripper:
     def __init__(
         self,
         node: Node,
-        open_position: float = 0.0,
+        open_position: float = 0.5,
         closed_position: float = 0.7,
         action_wait_timeout_sec: float = 2.0,
+        max_force=20
     ):
         self.node = node
         self.open_position = open_position
         self.closed_position = closed_position
-
-        self._min_position = min(open_position, closed_position)
-        self._max_position = max(open_position, closed_position)
+        self._max_force=max_force
+        self._min_position = min(open_position, closed_position, self._max_force)
+        self._max_position = max(open_position, closed_position, self._max_force)
 
         self._action_client = ActionClient(self.node, GripperCommand, self.ACTION_NAME)
 

@@ -9,7 +9,7 @@
     integration_timestep: 0.008
     frame_topic_name: "/target_frame"
     base_link: base_link
-    ee_link: tool0
+    ee_link: target_link
 
 /**/skill_learner:
   ros__parameters:
@@ -18,4 +18,4 @@
     integration_timestep: 0.008
     frame_topic_name: "/target_frame"
     base_link: base_link
-    ee_link: tool0
+    ee_link: target_link
