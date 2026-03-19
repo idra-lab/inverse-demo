@@ -7,6 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <thread>
 #include "smpl_msgs/msg/smpl.hpp"
@@ -38,6 +39,51 @@ void publish_compressed_image_msg(
   pub->publish(std::move(msg));
 }
 
+// ---------------------------------------------------------------------------
+// Build a sensor_msgs::msg::CameraInfo from ZED calibration parameters.
+// ---------------------------------------------------------------------------
+sensor_msgs::msg::CameraInfo build_camera_info(
+    const sl::CameraParameters &cam_params,
+    const std::string &frame_id,
+    const rclcpp::Time &stamp)
+{
+  sensor_msgs::msg::CameraInfo info;
+
+  info.header.stamp    = stamp;
+  info.header.frame_id = frame_id;
+
+  info.width  = static_cast<uint32_t>(cam_params.image_size.width);
+  info.height = static_cast<uint32_t>(cam_params.image_size.height);
+
+  // Distortion model: plumb_bob (k1 k2 p1 p2 k3)
+  info.distortion_model = "plumb_bob";
+  info.d.resize(5);
+  for (int i = 0; i < 5; ++i)
+    info.d[i] = static_cast<double>(cam_params.disto[i]);
+
+  const double fx = static_cast<double>(cam_params.fx);
+  const double fy = static_cast<double>(cam_params.fy);
+  const double cx = static_cast<double>(cam_params.cx);
+  const double cy = static_cast<double>(cam_params.cy);
+
+  // Intrinsic matrix K (3×3)
+  info.k = {fx,  0.0, cx,
+            0.0, fy,  cy,
+            0.0, 0.0, 1.0};
+
+  // Rectification matrix R – identity (stream is already rectified)
+  info.r = {1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0};
+
+  // Projection matrix P (3×4) – monocular, Tx = 0
+  info.p = {fx,  0.0, cx,  0.0,
+            0.0, fy,  cy,  0.0,
+            0.0, 0.0, 1.0, 0.0};
+
+  return info;
+}
+
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
@@ -46,32 +92,38 @@ int main(int argc, char **argv)
   // ------------------------------------------------------------------ //
   //  ROS Parameters
   // ------------------------------------------------------------------ //
-
-  // Serial number of the ZED camera to open.
-  // 0 (default) means "open the first available camera".
   node->declare_parameter<int>("serial_number", 0);
   const int serial_number = node->get_parameter("serial_number").as_int();
 
-  // TF frame that will be stamped on every published message.
   node->declare_parameter<std::string>("frame_id", "zed_camera_frame");
-  const std::string frame_id =
-      node->get_parameter("frame_id").as_string();
+  const std::string frame_id = node->get_parameter("frame_id").as_string();
 
   // ------------------------------------------------------------------ //
-
+  //  Publishers — NOTE: all topic names are RELATIVE (no leading slash)
+  //  so they are automatically prefixed with the node namespace set by
+  //  the launch file (e.g. "camera_1", "camera_2").
+  // ------------------------------------------------------------------ //
   auto smpl_pub =
-      node->create_publisher<smpl_msgs::msg::Smpl>("/smpl_params", 10);
+      node->create_publisher<smpl_msgs::msg::Smpl>("smpl_params", 10);
   auto image_pub =
-      node->create_publisher<sensor_msgs::msg::Image>("/zed/image", 10);
+      node->create_publisher<sensor_msgs::msg::Image>("zed/image", 10);
   auto image_compressed_pub =
       node->create_publisher<sensor_msgs::msg::CompressedImage>(
-          "/zed/image/compressed", 10);
+          "zed/image/compressed", 10);
   auto depth_pub =
-      node->create_publisher<sensor_msgs::msg::Image>("/zed/depth", 10);
+      node->create_publisher<sensor_msgs::msg::Image>("zed/depth", 10);
+  auto camera_info_pub =
+      node->create_publisher<sensor_msgs::msg::CameraInfo>(
+          "zed/camera_info", 10);
+  auto depth_camera_info_pub =
+      node->create_publisher<sensor_msgs::msg::CameraInfo>(
+          "zed/depth/camera_info", 10);
 
   SMPLRviz rviz(node, frame_id);
 
-  // Build the InputType based on the serial_number parameter.
+  // ------------------------------------------------------------------ //
+  //  Open camera
+  // ------------------------------------------------------------------ //
   sl::InputType input_type;
   if (serial_number > 0)
   {
@@ -83,7 +135,6 @@ int main(int argc, char **argv)
   {
     RCLCPP_INFO(node->get_logger(),
                 "No serial number specified — opening first available ZED");
-    // Default-constructed InputType opens the first available camera.
   }
 
   ClientPublisher client;
@@ -96,8 +147,22 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  // Read and cache intrinsics (stable for the whole session)
+  const sl::CameraInformation cam_info_sdk =
+      client.zed.getCameraInformation();
+  const sl::CameraParameters &left_cam =
+      cam_info_sdk.camera_configuration.calibration_parameters.left_cam;
+
+  RCLCPP_INFO(node->get_logger(),
+              "ZED intrinsics | fx=%.2f fy=%.2f cx=%.2f cy=%.2f res=%dx%d",
+              left_cam.fx, left_cam.fy,
+              left_cam.cx, left_cam.cy,
+              left_cam.image_size.width,
+              left_cam.image_size.height);
+
   RCLCPP_INFO(node->get_logger(),
               "ZED running | frame_id: '%s'", frame_id.c_str());
+
   rclcpp::Rate rate(15);
 
   sl::Bodies bodies;
@@ -115,6 +180,9 @@ int main(int argc, char **argv)
 
     const rclcpp::Time stamp = node->now();
 
+    // CameraInfo is the same for image and depth (same left sensor)
+    const auto cam_info_msg = build_camera_info(left_cam, frame_id, stamp);
+
     // ---------------- IMAGE ----------------
     sl::Mat zed_image;
     if (client.zed.retrieveImage(zed_image, sl::VIEW::LEFT) ==
@@ -128,6 +196,7 @@ int main(int argc, char **argv)
       cv::cvtColor(cvImage, cvImage, cv::COLOR_BGRA2BGR);
       publish_image_msg(image_pub, cvImage, frame_id);
       publish_compressed_image_msg(image_compressed_pub, cvImage, frame_id);
+      camera_info_pub->publish(cam_info_msg);
       RCLCPP_INFO(node->get_logger(), "Image OK");
     }
 
@@ -147,9 +216,10 @@ int main(int argc, char **argv)
                            "32FC1",
                            cvDepth)
                            .toImageMsg();
-      depth_msg->header.stamp = stamp;
+      depth_msg->header.stamp    = stamp;
       depth_msg->header.frame_id = frame_id;
       depth_pub->publish(*depth_msg);
+      depth_camera_info_pub->publish(cam_info_msg);
       RCLCPP_INFO(node->get_logger(), "Depth OK");
     }
 
@@ -167,7 +237,6 @@ int main(int argc, char **argv)
         continue;
       }
 
-      // Remap from ZED order to SMPL order using SMPL_TO_ZED lookup table.
       Eigen::Matrix<double, 24, 3> kp_raw;
       for (int smpl_idx = 0; smpl_idx < 24; ++smpl_idx)
       {
@@ -180,9 +249,7 @@ int main(int argc, char **argv)
           kp_raw.row(smpl_idx).setZero();
       }
 
-      // Apply SMPL -> ROS axis transform
       Eigen::Matrix<double, 24, 3> kp = kp_raw;
-
       rviz.publish_upper_body(kp, stamp);
 
       auto bodies_out = extractBodyData({bodies.body_list[0]}, SMPL_TO_ZED);
@@ -192,6 +259,7 @@ int main(int argc, char **argv)
       // smpl_pub->publish(smpl_msg);
       RCLCPP_INFO(node->get_logger(), "SMPL OK");
     }
+
     rclcpp::spin_some(node);
     rate.sleep();
   }

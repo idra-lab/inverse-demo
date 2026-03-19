@@ -97,6 +97,67 @@ def publish_poses(context, *args, **kwargs):
     return nodes_to_start
 
 
+def launch_realsense(context, *args, **kwargs):
+    """Launch RealSense D435 with RGB compressed + aligned depth, plus image_transport republishers."""
+
+    nodes_to_start = []
+
+    # ── RealSense D435 driver ──────────────────────────────────────────────────
+    # Publishes:
+    #   /camera/color/image_raw            (RGB)
+    #   /camera/aligned_depth_to_color/image_raw  (depth aligned to RGB frame)
+    realsense_node = Node(
+        package="realsense2_camera",
+        executable="realsense2_camera_node",
+        name="realsense2_camera",
+        namespace="camera",
+        output="screen",
+        parameters=[{
+            # RGB stream
+            "rgb_camera.color_profile": "640x480x30",
+            "enable_color": True,
+
+            # Depth stream
+            "depth_module.depth_profile": "640x480x30",
+            "enable_depth": True,
+
+            # Align depth to the colour frame
+            "align_depth.enable": True,
+
+            # Disable streams we don't need to keep bandwidth low
+            "enable_infra1": False,
+            "enable_infra2": False,
+            "enable_gyro": False,
+            "enable_accel": False,
+
+            # Publish tf
+            "publish_tf": False,
+        }],
+    )
+
+    # ── image_transport: RGB → compressed ─────────────────────────────────────
+    # Reads  : /camera/color/image_raw
+    # Writes : /camera/color/image_raw/compressed
+    # rgb_compress = Node(
+    #     package="image_transport",
+    #     executable="republish",
+    #     name="rgb_republish_compressed",
+    #     arguments=["raw", "compressed"],
+    #     remappings=[
+    #         ("in",             "/camera/color/image_raw"),
+    #         ("out/compressed", "/camera/color/image_raw/compressed"),
+    #     ],
+    #     output="screen",
+    # )
+
+    # ── image_transport: aligned depth → compressedDepth ──────────────────────
+    # Reads  : /camera/aligned_depth_to_color/image_raw
+    # Writes : /camera/aligned_depth_to_color/image_raw/compressedDepth
+
+    nodes_to_start += [realsense_node]
+    return nodes_to_start
+
+
 def launch_setup(context, *args, **kwargs):
 
     nodes_to_start = list()
@@ -144,8 +205,34 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    # cam extrinsics
+    zed_pose_tf_pub = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_path("easy_handeye2"),
+                    "launch",
+                    "publish_zeds.launch.py",
+                )
+            ],
+        ),
+    )
+    zed_publishers = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                get_package_share_path("smpl_ros"),
+                "launch",
+                "cams.launch.py",
+            )
+            ]
+        )
+    )
+
     nodes_to_start += [
         # bota_launch,
+        zed_pose_tf_pub,
+        zed_publishers,
         ur_launch,
         Node(
             package="inverse_motion_planner",
@@ -192,5 +279,8 @@ def generate_launch_description():
     ]
 
     return LaunchDescription(
-        declared_arguments + [OpaqueFunction(function=launch_setup)] + [OpaqueFunction(function=publish_poses)]
+        declared_arguments
+        + [OpaqueFunction(function=launch_setup)]
+        + [OpaqueFunction(function=publish_poses)]
+        + [OpaqueFunction(function=launch_realsense)]
     )

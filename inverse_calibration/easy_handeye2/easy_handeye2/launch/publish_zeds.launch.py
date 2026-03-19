@@ -13,7 +13,17 @@ def generate_launch_description():
         name="handeye_publisher",
         parameters=[
             {
-                "name": "calibrator_zed",
+                "name": "calibrator_zed1",
+            }
+        ],
+    )
+    handeye_publisher_2 = Node(
+        package="easy_handeye2",
+        executable="handeye_publisher",
+        name="handeye_publisher",
+        parameters=[
+            {
+                "name": "calibrator_zed2",
             }
         ],
     )
@@ -22,5 +32,6 @@ def generate_launch_description():
         [
             # arg_name,
             handeye_publisher_1,
+            handeye_publisher_2
         ]
     )

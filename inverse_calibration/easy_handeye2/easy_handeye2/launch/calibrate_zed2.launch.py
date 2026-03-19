@@ -32,19 +32,20 @@ def generate_launch_description():
         parameters=[
             # Camera SN %d: Intrinsics (fx, fy, cx, cy) = 1490.42 x 1490.42 x 1080.3 x 615.409
             {
-                "image_topic": "/zed/image",
+                "image_topic": "/camera_2/zed/image",
                 "marker_id": 2,
                 # "marker_length": 0.09968, #0.27,
                 "marker_length": 0.13,
-                "camera_frame": "zed_camera_frame",
+                "camera_frame": "zed_camera_2_frame",
                 "marker_frame": "aruco_marker_frame",
                 # SN 20788008
                 # 1059.54 x 1059.54 x 1103.4 x 614.117
 
-                "fx": 1059.54,
-                "fy": 1059.54,
-                "cx": 1103.4,
-                "cy": 614.117,
+                "fx": 1040.3294677734375,
+                "fy": 1040.3294677734375,
+                "cx": 1094.7650146484375,
+                "cy": 605.0772705078125,
+
                 # taken from /usr/local/zed/config/SNxxx.conf
                 # "fx": 1066.17,
                 # "fy": 1066.72,
@@ -65,9 +66,9 @@ def generate_launch_description():
         name="handeye_server",
         parameters=[
             {
-                "name": "calibrator_zed",
+                "name": "calibrator_zed2",
                 "calibration_type": "eye_on_base",
-                "tracking_base_frame": "zed_camera_frame",
+                "tracking_base_frame": "zed_camera_2_frame",
                 "tracking_marker_frame": "aruco_marker_frame",
                 "robot_base_frame": "base_link",
                 "robot_effector_frame": "tool0",
@@ -82,9 +83,9 @@ def generate_launch_description():
         # arguments=['--ros-args', '--log-level', 'debug'],
         parameters=[
             {
-                "name": "calibrator_zed",
+                "name": "calibrator_zed2",
                 "calibration_type": "eye_on_base",
-                "tracking_base_frame": "zed_camera_frame",
+                "tracking_base_frame": "zed_camera_2_frame",
                 "tracking_marker_frame": "aruco_marker_frame",
                 "robot_base_frame": "base_link",
                 "robot_effector_frame": "tool0",
