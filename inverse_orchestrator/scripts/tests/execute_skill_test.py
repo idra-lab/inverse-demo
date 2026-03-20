@@ -14,7 +14,6 @@ class Orchestrator(Node):
 
         self.base_link1 = "world"
         self.get_logger().info("Orchestrator initialized and ready.")
-        self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
     
     def test_execute_skill(self):

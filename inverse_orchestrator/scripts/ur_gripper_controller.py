@@ -19,7 +19,7 @@ class URGripper:
     def __init__(
         self,
         node: Node,
-        open_position: float = 0.5,
+        open_position: float = 0.47,
         closed_position: float = 0.7,
         action_wait_timeout_sec: float = 2.0,
         max_force=20
@@ -44,11 +44,11 @@ class URGripper:
 
     # ========================= PUBLIC API =========================
 
-    def open(self, max_effort: float = 50.0) -> Future:
+    def open(self, max_effort: float = 100.0) -> Future:
         """Open the gripper fully."""
         return self.command(self.open_position, max_effort)
 
-    def close(self, max_effort: float = 50.0) -> Future:
+    def close(self, max_effort: float = 100.0) -> Future:
         """Close the gripper fully."""
         return self.command(self.closed_position, max_effort)
 

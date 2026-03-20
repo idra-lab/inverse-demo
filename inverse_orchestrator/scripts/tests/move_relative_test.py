@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from inverse_orchestrator.reach_position import ReachPosition, ReachPosition_Class
+from scripts.reach_position import ReachPosition, ReachPosition_Class
 import rclpy
 import os
 from rclpy.node import Node
@@ -22,8 +22,6 @@ class Orchestrator(Node):
         # self.base_link1 = "world"
 
         self.get_logger().info("Orchestrator initialized and ready.")
-
-        self.get_logger().info("\n\n\n\n\n----------------\nStarting orchestrator...")
 
     
     def test_move_relative(self):

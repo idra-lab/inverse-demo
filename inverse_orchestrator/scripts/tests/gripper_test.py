@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.node import Node
 
-from inverse_orchestrator.ur_gripper_controller import URGripper
-
+from scripts.ur_gripper_controller import URGripper
+import argparse
 
 class GripperTestNode(Node):
 
@@ -30,15 +30,34 @@ class GripperTestNode(Node):
         self.get_logger().info(f"Command result: {future.result()}")
 
 
-def main():
-    rclpy.init()
+
+def main(args=None):
+    rclpy.init(args=args)
+    
+    # Crea il nodo
     node = GripperTestNode()
-    node.test_open()
-    node.test_command(position=0.5, max_effort=50.0)
-    node.test_close()
+
+    # Usa argparse per gestire gli argomenti
+    parser = argparse.ArgumentParser(description="Test UR gripper commands.")
+    parser.add_argument('--open', action="store_true", help="Test opening the gripper")
+    parser.add_argument('--close', action="store_true", help="Test closing the gripper")
+    
+    args = parser.parse_args(args)
+
+    # Se entrambi gli argomenti sono specificati, stampa un messaggio di errore
+    if args.open and args.close:
+        print("Please specify either --open or --close, not both.")
+        return
+
+    # Esegui i comandi di apertura o chiusura del gripper
+    if args.open:
+        node.test_open()
+    elif args.close:
+        node.test_close()
+
+    # Distruggi il nodo e termina
     node.destroy_node()
     rclpy.shutdown()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -42,44 +42,40 @@ def publish_poses(context, *args, **kwargs):
 
     nodes_to_start = list()
 
-    Z_OFFSET = 0.015
+    Z_OFFSET = 0.0
 
     frames = {
         "kit1_connector_grasp": (
-            [-0.08500, 0.90870, 0.14377 + Z_OFFSET],
+            [-0.084515, 0.9086, -0.036295 + Z_OFFSET],
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_connector_deposit": (
-            [0.13463, 0.98610, 0.01674 + Z_OFFSET],
+            [0.13952, 0.98642, 0.038777 + Z_OFFSET],
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_screw1": (
-            [-0.08565887808799744, 0.7611092329025269, -0.05876741 + Z_OFFSET],  # done
+            [-0.085748, 0.75795, -0.037221 + Z_OFFSET],  # done
             [0.0, 1.0, 0.0, 0.0],
         ),
+        #
         "kit1_screw2": (
-            [  # done
-                -0.084629,
-                0.77862,
-                -0.05687 + Z_OFFSET,
-            ],
+            [-0.086444, 0.77307, -0.037636 + Z_OFFSET],  # done
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_screw1_deposit": (  # done
-            [0.14331, 0.97230, 0.02755 + Z_OFFSET],
+            [0.14127, 0.96831, 0.047694 + Z_OFFSET],
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_screw2_deposit": (
-            [0.14234, 1.00739, 0.02822 + Z_OFFSET],
+            [0.14104, 1.0031, 0.051714 + Z_OFFSET],
             [0.0, 1.0, 0.0, 0.0],
         ),
-        
     }
     for frame_name, (translation, rotation) in frames.items():
         node = Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name=f'static_broadcaster_{frame_name}',
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name=f"static_broadcaster_{frame_name}",
             arguments=[
                 str(translation[0]),
                 str(translation[1]),
@@ -88,9 +84,9 @@ def publish_poses(context, *args, **kwargs):
                 str(rotation[1]),
                 str(rotation[2]),
                 str(rotation[3]),
-                'base_link',
-                frame_name
-            ]
+                "base_link",
+                frame_name,
+            ],
         )
         nodes_to_start.append(node)
         print("Appening transform ")
@@ -112,27 +108,25 @@ def launch_realsense(context, *args, **kwargs):
         name="realsense2_camera",
         namespace="camera",
         output="screen",
-        parameters=[{
-            # RGB stream
-            "rgb_camera.color_profile": "640x480x30",
-            "enable_color": True,
-
-            # Depth stream
-            "depth_module.depth_profile": "640x480x30",
-            "enable_depth": True,
-
-            # Align depth to the colour frame
-            "align_depth.enable": True,
-
-            # Disable streams we don't need to keep bandwidth low
-            "enable_infra1": False,
-            "enable_infra2": False,
-            "enable_gyro": False,
-            "enable_accel": False,
-
-            # Publish tf
-            "publish_tf": False,
-        }],
+        parameters=[
+            {
+                # RGB stream
+                "rgb_camera.color_profile": "640x480x30",
+                "enable_color": True,
+                # Depth stream
+                "depth_module.depth_profile": "640x480x30",
+                "enable_depth": True,
+                # Align depth to the colour frame
+                "align_depth.enable": True,
+                # Disable streams we don't need to keep bandwidth low
+                "enable_infra1": False,
+                "enable_infra2": False,
+                "enable_gyro": False,
+                "enable_accel": False,
+                # Publish tf
+                "publish_tf": False,
+            }
+        ],
     )
 
     # ── image_transport: RGB → compressed ─────────────────────────────────────
@@ -221,10 +215,10 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                get_package_share_path("smpl_ros"),
-                "launch",
-                "cams.launch.py",
-            )
+                    get_package_share_path("smpl_ros"),
+                    "launch",
+                    "cams.launch.py",
+                )
             ]
         )
     )
@@ -260,10 +254,10 @@ def launch_setup(context, *args, **kwargs):
                 os.path.join(
                     get_package_share_path("inverse_bringup"),
                     "config",
-                    "node_parameters.yaml"
+                    "node_parameters.yaml",
                 ),
             ],
-        )
+        ),
     ]
     return nodes_to_start
 
@@ -282,5 +276,5 @@ def generate_launch_description():
         declared_arguments
         + [OpaqueFunction(function=launch_setup)]
         + [OpaqueFunction(function=publish_poses)]
-        + [OpaqueFunction(function=launch_realsense)]
+        # + [OpaqueFunction(function=launch_realsense)]
     )

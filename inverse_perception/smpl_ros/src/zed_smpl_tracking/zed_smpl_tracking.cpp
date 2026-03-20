@@ -197,7 +197,6 @@ int main(int argc, char **argv)
       publish_image_msg(image_pub, cvImage, frame_id);
       publish_compressed_image_msg(image_compressed_pub, cvImage, frame_id);
       camera_info_pub->publish(cam_info_msg);
-      RCLCPP_INFO(node->get_logger(), "Image OK");
     }
 
     // ---------------- DEPTH ----------------
@@ -220,7 +219,6 @@ int main(int argc, char **argv)
       depth_msg->header.frame_id = frame_id;
       depth_pub->publish(*depth_msg);
       depth_camera_info_pub->publish(cam_info_msg);
-      RCLCPP_INFO(node->get_logger(), "Depth OK");
     }
 
     // ---------------- HUMAN ----------------
@@ -254,10 +252,7 @@ int main(int argc, char **argv)
 
       auto bodies_out = extractBodyData({bodies.body_list[0]}, SMPL_TO_ZED);
       auto smpl_msg = buildSMPLMessage(bodies_out[0], smpl_to_ros_transform(), {});
-      RCLCPP_INFO_STREAM(node->get_logger(),
-                         "SMPL msg betas size: " << smpl_msg.betas.size());
       // smpl_pub->publish(smpl_msg);
-      RCLCPP_INFO(node->get_logger(), "SMPL OK");
     }
 
     rclcpp::spin_some(node);

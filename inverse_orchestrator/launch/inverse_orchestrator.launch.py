@@ -10,7 +10,7 @@ import os
 
 def generate_launch_description():
 
-    bag_name = f"rosbag_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    bag_name = f"/media/ictadmin/LeoSSD/IntegrationWeek/recordings/rosbag_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     topics = [
         # ── Cameras ──────────────────────────────────────────────────────────
@@ -61,6 +61,7 @@ def generate_launch_description():
     )
 
     orchestrator = Node(
+            prefix="xterm -fa Monospace -fs 16 -e",
             package="inverse_orchestrator",
             executable="orchestrator",
             name="orchestrator",
@@ -73,4 +74,4 @@ def generate_launch_description():
         name="tf_publisher",
         output="screen",
     )
-    return LaunchDescription([tf_pose_publisher, rosbag_record, orchestrator])
+    return LaunchDescription([tf_pose_publisher, rosbag_record,orchestrator])
