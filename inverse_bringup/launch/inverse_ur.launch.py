@@ -42,6 +42,7 @@ def publish_poses(context, *args, **kwargs):
 
     nodes_to_start = list()
 
+    Z_OFFSET_SCREW = -0.015 #-0.008
     Z_OFFSET = 0.0
 
     frames = {
@@ -54,12 +55,12 @@ def publish_poses(context, *args, **kwargs):
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_screw1": (
-            [-0.085748, 0.75795, -0.037221 + Z_OFFSET],  # done
+            [-0.085748, 0.75795, -0.037221 + Z_OFFSET_SCREW],  # done
             [0.0, 1.0, 0.0, 0.0],
         ),
         #
         "kit1_screw2": (
-            [-0.086444, 0.77307, -0.037636 + Z_OFFSET],  # done
+            [-0.086444, 0.77307, -0.037636 + Z_OFFSET_SCREW],  # done
             [0.0, 1.0, 0.0, 0.0],
         ),
         "kit1_screw1_deposit": (  # done
