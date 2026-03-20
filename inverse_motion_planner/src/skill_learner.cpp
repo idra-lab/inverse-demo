@@ -71,6 +71,8 @@ void SkillLearner::on_learn_skill_request(
     {
         logger().error("num_basis must be > 0");
         return;
+    }else{
+        logger().info("Number of basis: {}", req->num_basis);
     }
 
     logger().info(

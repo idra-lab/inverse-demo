@@ -23,6 +23,10 @@ class Orchestrator(Node):
 
     def __init__(self):
         super().__init__("orchestrator")
+        self.mode = self.declare_parameter("mode", "forward").value
+
+        self.get_logger().info(f"Execution mode: {self.mode}")
+
 
         self.gripper = URGripper(node=self)
         self.execute_learned_skill = SkillExecutor(self, "/execute_skill")
@@ -141,8 +145,12 @@ class Orchestrator(Node):
     # ──────────────────────────────────────────────────────────────────────────
 
     def orchestrate(self):
+        if self.mode == "forward":
+            self.task1(move_connector=True, move_screw1=True, move_screw2=True)
         # self.task1(move_connector=True, move_screw1=True)
-        self.demo_learned_for_connector()
+        else:
+            self.task1_inverted()
+        # self.demo_learned_for_connector()
 
     # ──────────────────────────────────────────────────────────────────────────
     # TASK 1
@@ -196,7 +204,8 @@ class Orchestrator(Node):
         use_learned_final=True,
         max_vel=0.15,
         )
-        input("Press enter to move down to connector deposit")
+        # input("Press enter to move down to connector deposit")
+        time.sleep(16.0)
 
         # # MOVE TO CONNECTOR DEPOSIT
         # input("Press Enter to move down to connector deposit")
@@ -262,11 +271,24 @@ class Orchestrator(Node):
             self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
 
             # # MOVE TO CONNECTOR DEPOSIT TOP
-            input("Press Enter to move to connector deposit")
-            end_pose = PoseStamped()
-            end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
-            end_pose.pose.position.z = -0.06
-            self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+            # input("Press Enter to move to connector deposit")
+            # end_pose = PoseStamped()
+            # end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+            # end_pose.pose.position.z = -0.06
+            # self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+            input("Press enter to execute learned skill")
+            start_pose = end_pose
+            connector_pose = PoseStamped()
+            connector_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+            connector_pose.pose.position.z = -0.06
+            self.execute_learned_skill.execute_skill(
+            "connector_to_deposit",
+            initial_pose=start_pose,
+            final_pose=connector_pose,
+            use_learned_initial=True,
+            use_learned_final=True,
+            max_vel=0.15,
+            )
 
             # # MOVE TO CONNECTOR DEPOSIT
             input("Press Enter to move down to connector deposit")
@@ -390,6 +412,195 @@ class Orchestrator(Node):
             end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
             end_pose.pose.position.z = -0.08
             self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+
+    def task1_inverted(self):
+
+        self.get_logger().info("Starting Task 1 INVERTED: Screws → Connector")
+
+        move_relative_client = self.create_client(MoveRelative, "/move_relative")
+        self.get_logger().info("Waiting for MoveRelative service...")
+        while not move_relative_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn("Waiting for MoveRelative service...")
+
+        # ── OPEN GRIPPER ──────────────────────────────────────────────
+        input("Press Enter to open gripper")
+        self.gripper.open()
+
+        # ==============================================================
+        # 🔩 1. SCREW 2 (DEPOSIT → ORIGINAL)
+        # ==============================================================
+        input("Start INVERTED routine: Screw 2")
+
+        # Move above deposit
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        end_pose.pose.position.z = -0.05
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to screw 2 (deposit)")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        end_pose.pose.position.z = 0.005
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Grasp
+        input("Close gripper on screw 2")
+        self.gripper.close()
+
+        # Move up
+        input("Move up with screw 2")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_deposit_frame_name
+        end_pose.pose.position.z = -0.08
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move to original location (top)
+        input("Move to screw 2 original position")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_frame_name
+        end_pose.pose.position.z = -0.05
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to screw 2 original")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_frame_name
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Release
+        input("Open gripper")
+        self.gripper.open()
+
+        # Move up
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw2_frame_name
+        end_pose.pose.position.z = -0.08
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # ==============================================================
+        # 🔩 2. SCREW 1 (DEPOSIT → ORIGINAL)
+        # ==============================================================
+        input("Start INVERTED routine: Screw 1")
+
+        # Move above deposit
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
+        end_pose.pose.position.z = -0.05
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to screw 1 (deposit)")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
+        end_pose.pose.position.z = 0.005
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Grasp
+        input("Close gripper on screw 1")
+        self.gripper.close()
+
+        # Move up
+        input("Move up with screw 1")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_deposit_frame_name
+        end_pose.pose.position.z = -0.08
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move to original location (top)
+        input("Move to screw 1 original position")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        end_pose.pose.position.z = -0.05
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to screw 1 original")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Release
+        input("Open gripper")
+        self.gripper.open()
+
+        # Move up
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_screw1_frame_name
+        end_pose.pose.position.z = -0.08
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # ==============================================================
+        # 🔌 3. CONNECTOR (DEPOSIT → GRASP, USING LEARNED SKILL)
+        # ==============================================================
+        input("Start INVERTED routine: Connector")
+
+        # Move above deposit
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        end_pose.pose.position.z = -0.06
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to connector (deposit)")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        end_pose.pose.position.z = 0.005
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Grasp
+        input("Close gripper on connector")
+        self.gripper.close()
+        time.sleep(2)
+
+        # Move up
+        input("Move up with connector")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_deposit_frame_name
+        end_pose.pose.position.z = -0.20 # move higher to avoid collisions during learned skill execution (not learned)
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # 🔁 REVERSED LEARNED SKILL
+        # input("Execute INVERTED learned skill")
+
+        # start_pose = end_pose
+
+        # grasp_pose = PoseStamped()
+        # grasp_pose.header.frame_id = self.kit1_connector_grasp_frame_name
+        # grasp_pose.pose.position.z = -0.05
+
+        # self.execute_learned_skill.execute_skill(
+        #     "connector_to_deposit",
+        #     initial_pose=start_pose,
+        #     final_pose=grasp_pose,
+        #     use_learned_initial=True,
+        #     use_learned_final=True,
+        #     max_vel=0.15,
+        # )
+
+        # MOve to above grasp
+        input("Move to above grasp pose")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_grasp_frame_name
+        end_pose.pose.position.z = -0.05
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Move down
+        input("Move down to connector original")
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_grasp_frame_name
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
+
+        # Release
+        input("Open gripper")
+        self.gripper.open()
+
+        # Move up
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = self.kit1_connector_grasp_frame_name
+        end_pose.pose.position.z = -0.08
+        self.execute_reach_pose.execute_skill(final_pose=end_pose, max_vel=0.1)
 
 def main():
     rclpy.init()

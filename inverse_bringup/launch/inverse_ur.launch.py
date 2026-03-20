@@ -276,5 +276,5 @@ def generate_launch_description():
         declared_arguments
         + [OpaqueFunction(function=launch_setup)]
         + [OpaqueFunction(function=publish_poses)]
-        # + [OpaqueFunction(function=launch_realsense)]
+        + [OpaqueFunction(function=launch_realsense)]
     )
