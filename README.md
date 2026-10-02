@@ -106,3 +106,11 @@ To record the a human skill (DMP based) that then can be executed by the robot:
 When learning, only 1 trajectory of the robot is actually recorded. The recorded pose is the one of a TF2 transform of the frame specified in the [`node_parameters.yaml`](./inverse_bringup/config/node_parameters.yaml) file, specifically in the [arguments for the `skill_learner` node](https://github.com/idra-lab/inverse-demo/blob/faac88be8ce0415ba8300680b065f9e9fffc180c/inverse_bringup/config/parameters.yaml#L23-L30).
 For the setup with UR, the `tool0` frame is reference to the TCP of the robot.
 
+# Zotac PC configuration
+
+- User: `inverse`
+- Password: `inverse`
+
+The following are the default configuration for the IP addresses of the computer:
+
+![](docs/zotac.png)
