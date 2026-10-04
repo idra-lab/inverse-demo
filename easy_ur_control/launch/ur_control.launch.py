@@ -228,6 +228,17 @@ def launch_setup(context, *args, **kwargs):
         ]
     )
 
+    remappings=[
+            ("/cartesian_motion_controller/target_frame", "/target_frame"),
+            ("/cartesian_compliance_controller/target_frame", "/target_frame"),
+            ("/cartesian_compliance_controller/ft_sensor_wrench", "/robotiq_ft_sensor_broadcaster/wrench"),
+            ("/cartesian_compliance_controller/target_wrench", "/target_wrench"),
+            ("/cartesian_force_controller/ft_sensor_wrench", "/robotiq_ft_sensor_broadcaster/wrench"),
+            ("/cartesian_force_controller/target_wrench", "/target_wrench"),
+            ("/cartesian_force_controller/target_frame", "/target_frame"),
+            ("/motion_control_handle/target_frame", "/target_frame"),
+        ]
+
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -236,15 +247,7 @@ def launch_setup(context, *args, **kwargs):
             update_rate_config_file,
             ParameterFile(initial_joint_controllers, allow_substs=True),
         ],
-        remappings=[
-            ("/cartesian_motion_controller/target_frame", "/target_frame"),
-            ("/cartesian_compliance_controller/target_frame", "/target_frame"),
-            ("/cartesian_compliance_controller/ft_sensor_wrench","/force_torque_sensor_broadcaster/wrench"),
-            ("/cartesian_compliance_controller/target_wrench", "/target_wrench"),
-            ("/cartesian_compliance_controller/target_wrench", "/target_wrench"),
-            ("/cartesian_force_controller/target_frame", "/target_frame"),
-            ("/motion_control_handle/target_frame", "/target_frame"),
-        ],
+        remappings=remappings,
         output="screen",
         condition=IfCondition(use_fake_hardware),
     )
@@ -258,14 +261,7 @@ def launch_setup(context, *args, **kwargs):
             update_rate_config_file,
             ParameterFile(initial_joint_controllers, allow_substs=True),
         ],
-        remappings=[
-            ("/cartesian_motion_controller/target_frame", "/target_frame"),
-            ("/cartesian_compliance_controller/target_frame", "/target_frames"),
-            ("/cartesian_compliance_controller/ft_sensor_wrench","/bus0/ft_sensor0/ft_sensor_readings/wrench"),
-            ("/cartesian_compliance_controller/target_wrench", "/target_wrench"),
-            ("/cartesian_force_controller/target_frame", "/target_frame"),
-            ("/motion_control_handle/target_frame", "/target_frame"),
-        ],
+        remappings=remappings,
         output="screen",
         condition=UnlessCondition(use_fake_hardware),
     )
@@ -381,6 +377,7 @@ def launch_setup(context, *args, **kwargs):
         "ur_configuration_controller",
         "robotiq_gripper_controller",           # Added for Robotiq gripper support
         "robotiq_activation_controller",        # Adde for Robotiq gripper support
+        "robotiq_ft_sensor_broadcaster",        # Robotiq FT 300 wrench on /robotiq_ft_sensor_broadcaster/wrench
     ]
     controllers_inactive = [
         "scaled_joint_trajectory_controller",

@@ -13,6 +13,10 @@ controller_manager:
     force_torque_sensor_broadcaster:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
+    # Robotiq FT 300 mounted on the flange
+    robotiq_ft_sensor_broadcaster:
+      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
@@ -99,6 +103,18 @@ force_torque_sensor_broadcaster:
       - torque.z
     frame_id: $(var tf_prefix)tool0
     topic_name: ft_data
+
+robotiq_ft_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: robotiq_ft_sensor
+    state_interface_names:
+      - force.x
+      - force.y
+      - force.z
+      - torque.x
+      - torque.y
+      - torque.z
+    frame_id: robotiq_ft_frame_id
 
 joint_trajectory_controller:
   ros__parameters:
@@ -233,7 +249,7 @@ cartesian_compliance_controller:
     # between end_effector_link and robot_base_link.  If that's not the case,
     # the controllers won't initialize and will emit an error message.
     # ft_sensor_ref_link: "ft_sensor0_wrench"
-    ft_sensor_ref_link: "target_link"
+    ft_sensor_ref_link: "robotiq_ft_frame_id"
 
 
     # This is the link that the robot feels compliant about. It does not need
@@ -292,9 +308,10 @@ cartesian_force_controller:
   ros__parameters:
 
     # See the cartesian_compliance_controller
-    end_effector_link: "tool0"
+    # The sensor link must lie between robot_base_link and end_effector_link
+    end_effector_link: "target_link"
     robot_base_link: "$(var tf_prefix)base_link"
-    ft_sensor_ref_link: "ft_sensor0_wrench"
+    ft_sensor_ref_link: "robotiq_ft_frame_id"
     joints:
       - $(var tf_prefix)shoulder_pan_joint
       - $(var tf_prefix)shoulder_lift_joint

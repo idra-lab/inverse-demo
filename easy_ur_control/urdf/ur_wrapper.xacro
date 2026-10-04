@@ -10,10 +10,41 @@
     <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_140_macro.urdf.xacro" />
     <xacro:arg name="use_fake_hardware" default="false" />
     <xacro:include filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro" />
+    
+    <!--Include the two macros from robotiq_ft_sensor_description: mechanical-->
+    <xacro:include filename="$(find robotiq_ft_sensor_description)/urdf/robotiq_ft300.urdf.xacro" />
+    
+    <!-- The fts_ros2_control tells the controller manager to load the RobotiqFTSensorHardware plugin and expode force.x/y/-->
+    <xacro:include filename="$(find robotiq_ft_sensor_description)/urdf/robotiq_fts.ros2_control.xacro" />
 
+    <!-- Robotiq FT 300 force-torque sensor mounted on the flange tool0 with same orientation as tool0-->
+    <xacro:robotiq_ft300 parent="tool0" tf_prefix="">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:robotiq_ft300>
+
+    <!-- In fake mode the plugin does not open the serial port and reads zeros -->
+    <xacro:robotiq_fts_ros2_control
+        name=""
+        tf_prefix=""
+        use_fake_mode="$(arg use_fake_hardware)"
+        max_retries="100"
+        read_rate="10"
+        ftdi_id="" />
+
+    <!-- Tool-side face of the sensor (41.5 mm from tool0), same orientation as tool0:
+         robotiq_ft_frame_id is tool0 rotated by +pi/2 around z, so undo that rotation -->
+    <link name="ft300_tool_flange" />
+    <joint name="ft300_tool_flange_joint" type="fixed">
+        <parent link="robotiq_ft_frame_id" />
+        <origin xyz="0 0 0" rpy="0 0 ${-pi/2}" />
+        <child link="ft300_tool_flange" />
+    </joint>
+
+
+    <!-- Change from tool0 to ft300_tool_flange -->
     <xacro:ur_to_robotiq
         prefix=""
-        parent="tool0"
+        parent="ft300_tool_flange" 
         child="robotiq_coupling"
         rotation="${pi/2}" />
 
