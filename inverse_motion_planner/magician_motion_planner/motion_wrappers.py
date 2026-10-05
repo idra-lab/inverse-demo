@@ -6,6 +6,7 @@ from rclpy.node import Node
 from typing import TypeVar, Generic, cast
 from magician_motion_planner.planner_pose import PlannerPose
 from magician_motion_planner.motion_mixins import ControlMixin, SanderMixin
+from inverse_msgs.srv import EnqueueTrigger
 
 
 RequestT = TypeVar("RequestT")
@@ -26,6 +27,16 @@ class Motion(Generic[RequestT, ResponseT]):
         res_future = self.client.call_async(self.msg)
         rclpy.spin_until_future_complete(self.node, res_future)
         return cast(ResponseT, res_future.result())
+
+
+class PickMotion(Motion[EnqueueTrigger.Request, EnqueueTrigger.Response]):
+    request_type = EnqueueTrigger.Request
+    response_type = EnqueueTrigger.Response
+
+
+class PlaceMotion(Motion[EnqueueTrigger.Request, EnqueueTrigger.Response]):
+    request_type = EnqueueTrigger.Request
+    response_type = EnqueueTrigger.Response
 
 
 class ReachPosition(

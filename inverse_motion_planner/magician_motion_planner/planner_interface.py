@@ -8,6 +8,7 @@ from magician_msgs.srv import (
     PointToPointMotion, ReachPosition, MeshReachPosition, MeshPointToPointMotion, HoldPosition
 )
 from std_srvs.srv import Trigger, SetBool
+from inverse_msgs.srv import EnqueueTrigger
 from typing import cast
 
 
@@ -83,6 +84,16 @@ class PlannerInterface(Node):
         motion = wrappers.HoldPosition(self, self.hold_pos_client)
         motion.set_hold_duration(hold_duration_secs)
         return motion
+
+    def pick(self) -> wrappers.PickMotion:
+        if not hasattr(self, "pick_client"):
+            self.pick_client = self._create_client_custom(EnqueueTrigger, "pick")
+        return wrappers.PickMotion(self, self.pick_client)
+
+    def place(self) -> wrappers.PlaceMotion:
+        if not hasattr(self, "place_client"):
+            self.place_client = self._create_client_custom(EnqueueTrigger, "place")
+        return wrappers.PlaceMotion(self, self.place_client)
 
     def linear_ptp(
         self,

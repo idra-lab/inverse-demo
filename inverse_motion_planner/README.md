@@ -25,3 +25,47 @@ docs here https://github.com/magician-project/magician_documentation/blob/main/t
 - `/motion_planner/execute_mesh_ptp_motion` (type `magician_msgs/srv/MeshPointToPointMotion`): service that performs a point-to-point motion within two arbitrary points which are projected on a specified mesh;
 - `/motion_planner/hold_position` (type `magician_msgs/srv/HoldPosition`): a simple motion primitives that stays in a point for a given amount of seconds;
 - `/motion_planner/ptp_time_estimate` (type `magician_msgs/srv/PointToPointTime`): provides the time-transition matrix for reaching some poses;
+
+## Queued gripper primitives
+
+`/motion_planner/pick` (close) and `/motion_planner/place` (open) use
+`inverse_msgs/srv/EnqueueTrigger`: an empty request and a response containing
+`bool success`, `string message`, and `uint64[] motion_ids`. Success means the
+primitive was **enqueued**, not that the grasp/release has completed. An
+unavailable action server rejects the request without allocating a motion ID.
+
+```bash
+ros2 service call /motion_planner/pick inverse_msgs/srv/EnqueueTrigger '{}'
+ros2 service call /motion_planner/place inverse_msgs/srv/EnqueueTrigger '{}'
+```
+
+The Python wrappers also support `node.pick().enqueue()` and
+`node.place().enqueue()`. These are gripper-only operations; enqueue approach,
+transport, and retreat motions separately. Reference broadcasting must be enabled
+for the queue to execute, as with other primitives.
+
+Each primitive starts its action only when it becomes active. It holds the arm's
+incoming reference pose with zero reference twist while waiting. Successful
+completion publishes the primitive ID on `/motion_end` and permits the next
+queued motion to start (`/motion_start` reports its start).
+
+Parameters (defaults match the orchestrator's open/close commands):
+
+| Parameter | Default |
+| --- | --- |
+| `gripper_action_name` | `/robotiq_gripper_controller/gripper_cmd` |
+| `gripper_open_position` | `0.47` |
+| `gripper_closed_position` | `0.7` |
+| `gripper_max_effort` | `100.0` |
+| `gripper_timeout_sec` | `10.0` |
+| `gripper_pick_allow_stalled` | `true` |
+
+Only an action result with `SUCCEEDED` and `reached_goal` completes a place.
+A pick also accepts a `SUCCEEDED` result with `stalled` when
+`gripper_pick_allow_stalled` is enabled, allowing closure against an object.
+This does not independently verify object presence. Rejection, abort,
+cancellation, disappearance of the action server, or timeout holds the pose and
+blocks the queue, logging an error without publishing successful completion.
+Use `safe_stop` to clear the queue before recovery. Stopping/replacing an active
+primitive requests action cancellation, including goals accepted after the stop.
+Cancellation is best-effort, not a hardware emergency stop.
