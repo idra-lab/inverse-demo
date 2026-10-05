@@ -18,3 +18,7 @@
 [submodule "rq_fts_ros2_driver"]
 	path = rq_fts_ros2_driver
 	url = https://github.com/panagelak/rq_fts_ros2_driver.git
+[submodule "TIM"]
+	path = TIM
+	url = git@github.com:prisma-lab/TIM.git
+	branch = third-prototype
