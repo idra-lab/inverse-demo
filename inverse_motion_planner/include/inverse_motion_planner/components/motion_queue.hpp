@@ -3,8 +3,12 @@
 
 #include <mutex>
 #include <queue>
+#include <string>
 
 #include <mdv/utils/logging.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/publisher.hpp>
+#include <std_msgs/msg/int64.hpp>
 
 #include "inverse_motion_planner/components/motion.hpp"
 
@@ -14,6 +18,9 @@ public:
 
     MotionQueue(
             const Se3Pose&         initial_pose,
+            rclcpp::Node*          node,
+            const std::string&     motion_start_topic,
+            const std::string&     motion_end_topic,
             mdv::Logger::SharedPtr logger = mdv::get_default_logger()
     );
 
@@ -76,6 +83,10 @@ private:
     Motion::UniquePtr              _curr_motion = nullptr;
     std::queue<Motion::UniquePtr>  _motion_queue;
     mutable std::mutex             _queue_mutex;
+
+    using Publisher            = rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr;
+    Publisher _start_publisher = nullptr;
+    Publisher _end_publisher   = nullptr;
 
     std::size_t _motion_id_count = 0;
 };

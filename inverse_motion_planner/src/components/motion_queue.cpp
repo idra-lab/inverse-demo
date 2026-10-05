@@ -54,14 +54,34 @@ private:
     Se3Pose _pose;
 };
 
-MotionQueue::MotionQueue(const Se3Pose& initial_pose, mdv::Logger::SharedPtr logger) :
+MotionQueue::MotionQueue(
+        const Se3Pose&         initial_pose,
+        rclcpp::Node*          node,
+        const std::string&     motion_start_topic,
+        const std::string&     motion_end_topic,
+        mdv::Logger::SharedPtr logger
+) :
         _logger(std::move(logger)) {
     Expects(_logger);
     KeepPosition mot(initial_pose);
     _curr_motion = std::make_unique<KeepPosition>(initial_pose);
 
+    using Int64 = std_msgs::msg::Int64;
+    _start_publisher =
+            node->create_publisher<Int64>(motion_start_topic, rclcpp::QoS(10));
+    _end_publisher = node->create_publisher<Int64>(motion_end_topic, rclcpp::QoS(10));
+    _logger->info(
+            "Topic '{}' publishes ID of motion that starts execution",
+            motion_start_topic
+    );
+    _logger->info(
+            "Topic '{}' publishes ID of motion that ends execution", motion_end_topic
+    );
+
     assert(_curr_motion);
     assert(_motion_queue.empty());
+    assert(_start_publisher != nullptr);
+    assert(_end_publisher != nullptr);
 }
 
 std::size_t

@@ -51,8 +51,14 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     Ensures(_system);
 
     logger().debug("Initialising MotionPlanner");
-    _planner =
-            std::make_unique<MotionPlanner>(_logger, _system.get(), _parameters.get());
+    _planner = std::make_unique<MotionPlanner>(
+            _logger,
+            _system.get(),
+            _parameters.get(),
+            this,
+            "/motion_start",
+            "/motion_end"
+    );
     Ensures(_planner);
 
     logger().debug("Creating ImpedanceToAdmittance");
