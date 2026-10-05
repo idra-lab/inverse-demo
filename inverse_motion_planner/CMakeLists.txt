@@ -39,6 +39,8 @@ find_and_log_required(fmt)
 find_and_log_required(mdvcpplib)
 find_and_log_required(nlohmann_json)
 find_and_log_required(rclcpp)
+find_and_log_required(rclcpp_action)
+find_and_log_required(control_msgs)
 find_and_log_required(std_srvs)
 find_and_log_required(geometry_msgs)
 find_and_log_required(inverse_msgs)
@@ -55,6 +57,7 @@ add_library(
     src/motions/dmp_motion_interface.cpp
     src/motions/discrete_dmp_motion.cpp
     src/motions/hold_position.cpp
+    src/motions/gripper_motion.cpp
     src/motions/rhytmic_dmp_motion.cpp
     src/motions/raw_trajectory.cpp
     src/motions/peg_in_hole.cpp
@@ -89,6 +92,8 @@ ament_target_dependencies(
     motion_planner_commons
     PUBLIC
     rclcpp
+    rclcpp_action
+    control_msgs
     geometry_msgs
     tf2_ros
     inverse_msgs
@@ -117,4 +122,5 @@ install(
     TARGETS motion_planner skill_learner
     DESTINATION lib/${PROJECT_NAME}
 )
+
 ament_package()
