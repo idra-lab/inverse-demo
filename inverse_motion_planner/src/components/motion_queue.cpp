@@ -64,11 +64,16 @@ MotionQueue::MotionQueue(const Se3Pose& initial_pose, mdv::Logger::SharedPtr log
     assert(_motion_queue.empty());
 }
 
-void
+std::size_t
 MotionQueue::append_motion(Motion::UniquePtr&& motion) {
     std::lock_guard<std::mutex> queue_mutex_lock(_queue_mutex);
     logger().info("Appending new motion to the queue: {}", motion->describe());
+    std::size_t id = _motion_id_count;
+    ++_motion_id_count;
+    motion->assign_id(id);
     _motion_queue.emplace(std::move(motion));
+    // TODO: add callbacks for start/end motion
+    return id;
 }
 
 void

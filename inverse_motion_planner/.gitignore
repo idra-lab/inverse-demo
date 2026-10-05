@@ -1,3 +1,4 @@
 .cache
 .aider*
 __pycache__/
+build/

@@ -18,10 +18,11 @@ public:
     );
 
     /**
-     * @brief Puts the provided motion at the end of the queue
+     * @brief Puts the provided motion at the end of the queue.
      *
+     * Returns the unique ID assigned to the motion.
      */
-    void append_motion(Motion::UniquePtr&& motion);
+    [[nodiscard]] std::size_t append_motion(Motion::UniquePtr&& motion);
 
     /**
      * @brief Clears the current motion queue
@@ -75,6 +76,8 @@ private:
     Motion::UniquePtr              _curr_motion = nullptr;
     std::queue<Motion::UniquePtr>  _motion_queue;
     mutable std::mutex             _queue_mutex;
+
+    std::size_t _motion_id_count = 0;
 };
 
 

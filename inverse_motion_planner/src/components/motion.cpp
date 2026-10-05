@@ -19,3 +19,8 @@ void
 Motion::call_motion_completion_hooks() {
     for (const auto& hook : _on_motion_completion_hooks) hook();
 }
+
+void
+Motion::assign_id(std ::size_t id) {
+    _id = id;
+}
