@@ -28,7 +28,10 @@ MotionPlanner::MotionPlanner(
 
 MotionPlanner::Se3Pose
 MotionPlanner::step() {
-    if (current_motion().is_completed()) motion_queue().try_step_motion();
+    if (current_motion().is_completed()) {
+        current_motion().call_motion_completion_hooks();
+        motion_queue().try_step_motion();
+    }
     current_motion().step();
     return current_motion().current_reference_pose();
 };

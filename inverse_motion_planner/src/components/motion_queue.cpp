@@ -155,8 +155,6 @@ void
 MotionQueue::pop_from_queue() {
     if (_motion_queue.empty()) return;
 
-    _curr_motion->call_motion_completion_hooks();
-
     // Retrieve new plan
     auto new_plan = std::move(_motion_queue.front());
     _motion_queue.pop();
