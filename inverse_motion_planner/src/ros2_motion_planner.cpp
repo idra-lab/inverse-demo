@@ -265,7 +265,8 @@ Ros2MotionPlanner::on_reachposition_request(
         // TODO:
         planner().motion_queue().clear();
         planner().motion_queue().stop_motion();
-        planner().motion_queue().append_motion(std::move(new_plan));
+        const auto id = planner().motion_queue().append_motion(std::move(new_plan));
+        response->motion_ids.push_back(id);
 
 
     } else {
@@ -275,7 +276,8 @@ Ros2MotionPlanner::on_reachposition_request(
                 planner().parameters().get_dt(),
                 params
         );
-        planner().motion_queue().append_motion(std::move(new_plan));
+        const auto id = planner().motion_queue().append_motion(std::move(new_plan));
+        response->motion_ids.push_back(id);
     }
     response->success = true;
 }
@@ -306,7 +308,8 @@ Ros2MotionPlanner::on_ptp_motion_request(
                 planner().parameters().get_dt(),
                 params
         );
-        planner().motion_queue().append_motion(std::move(plan));
+        const auto id = planner().motion_queue().append_motion(std::move(plan));
+        response->motion_ids.push_back(id);
     }
 
     auto plan = DiscreteDmpMotion::linear_interpolation(
@@ -315,8 +318,8 @@ Ros2MotionPlanner::on_ptp_motion_request(
             planner().parameters().get_dt(),
             params
     );
-    planner().motion_queue().append_motion(std::move(plan));
-
+    const auto id = planner().motion_queue().append_motion(std::move(plan));
+    response->motion_ids.push_back(id);
     response->success = true;
 }
 
@@ -334,8 +337,8 @@ Ros2MotionPlanner::on_hold_position_request(
             DmpParameters(),
             _logger
     );
-    planner().motion_queue().append_motion(std::move(plan));
-
+    const auto id = planner().motion_queue().append_motion(std::move(plan));
+    response->motion_ids.push_back(id);
     response->success = true;
 }
 
@@ -370,8 +373,8 @@ Ros2MotionPlanner::on_move_relative_request(
     auto plan      = DiscreteDmpMotion::linear_interpolation(
             y0, g, planner().parameters().get_dt(), params
     );
-
-    planner().motion_queue().append_motion(std::move(plan));
+    const auto id = planner().motion_queue().append_motion(std::move(plan));
+    resp->motion_ids.push_back(id);
     resp->success = true;
 }
 
@@ -388,7 +391,8 @@ Ros2MotionPlanner::on_execute_skill_request(
         auto motion = RawTrajectoryMotion::peg_in_hole(
                 pose, planner().parameters(), planner().system()
         );
-        planner().motion_queue().append_motion(std::move(motion));
+        const auto id = planner().motion_queue().append_motion(std::move(motion));
+        resp->motion_ids.push_back(id);
         resp->success = true;
         return;
     }
@@ -429,7 +433,8 @@ Ros2MotionPlanner::on_execute_skill_request(
             skill.value().dmp_weights, y0, g, planner().parameters().get_dt(), params
     );
     plan->optimise_tau(y0, g, params.max_vel);
-    planner().motion_queue().append_motion(std::move(plan));
+    const auto id = planner().motion_queue().append_motion(std::move(plan));
+    resp->motion_ids.push_back(id);
     resp->success = true;
 }
 
