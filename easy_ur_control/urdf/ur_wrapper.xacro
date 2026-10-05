@@ -6,14 +6,16 @@
     <xacro:include filename="$(find ur_description)/urdf/ur.urdf.xacro" />
 
     <xacro:arg name="use_fake_hardware" default="true" />
+    <!-- Gripper uses a full device path; FT driver prepends /dev/ to ftdi_id. -->
     <xacro:arg name="com_port" default="/dev/ttyUSB0" />
+    <xacro:arg name="ftdi_id" default="ttyUSB1" />
     <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_140_macro.urdf.xacro" />
     <xacro:arg name="use_fake_hardware" default="false" />
     <xacro:include filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro" />
-    
+
     <!--Include the two macros from robotiq_ft_sensor_description: mechanical-->
     <xacro:include filename="$(find robotiq_ft_sensor_description)/urdf/robotiq_ft300.urdf.xacro" />
-    
+
     <!-- The fts_ros2_control tells the controller manager to load the RobotiqFTSensorHardware plugin and expode force.x/y/-->
     <xacro:include filename="$(find robotiq_ft_sensor_description)/urdf/robotiq_fts.ros2_control.xacro" />
 
@@ -29,7 +31,7 @@
         use_fake_mode="$(arg use_fake_hardware)"
         max_retries="100"
         read_rate="10"
-        ftdi_id="" />
+        ftdi_id="$(arg ftdi_id)" />
 
     <!-- Tool-side face of the sensor (41.5 mm from tool0), same orientation as tool0:
          robotiq_ft_frame_id is tool0 rotated by +pi/2 around z, so undo that rotation -->
@@ -44,7 +46,7 @@
     <!-- Change from tool0 to ft300_tool_flange -->
     <xacro:ur_to_robotiq
         prefix=""
-        parent="ft300_tool_flange" 
+        parent="ft300_tool_flange"
         child="robotiq_coupling"
         rotation="${pi/2}" />
 
@@ -53,6 +55,7 @@
         parent="robotiq_coupling"
         name="RobotiqGripper"
         include_ros2_control="true"
+        com_port="$(arg com_port)"
         use_fake_hardware="$(arg use_fake_hardware)">
         <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:robotiq_gripper>
