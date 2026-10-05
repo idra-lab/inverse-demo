@@ -1,9 +1,11 @@
 #include "inverse_motion_planner/ros2_motion_planner.hpp"
 
+#include <cmath>
 #include <Eigen/Geometry>
 #include <filesystem>
 #include <gsl/assert>
 #include <rmw/qos_profiles.h>
+#include <stdexcept>
 
 #include <mdv/ros2/conversions.hpp>
 #include <mdv/ros2/logger.hpp>
@@ -92,6 +94,38 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     //  \____|_|_|\___|_| |_|\__|___/
     //
     _client_cbk_group = create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+
+    const auto gripper_action = declare_parameter<std::string>(
+            "gripper_action_name", "/robotiq_gripper_controller/gripper_cmd"
+    );
+    _gripper_open_position      = declare_parameter("gripper_open_position", 0.47);
+    _gripper_closed_position    = declare_parameter("gripper_closed_position", 0.7);
+    _gripper_max_effort         = declare_parameter("gripper_max_effort", 100.0);
+    _gripper_timeout_sec        = declare_parameter("gripper_timeout_sec", 10.0);
+    _gripper_pick_allow_stalled = declare_parameter("gripper_pick_allow_stalled", true);
+    if (!std::isfinite(_gripper_open_position)
+        || !std::isfinite(_gripper_closed_position)
+        || !std::isfinite(_gripper_max_effort) || _gripper_max_effort < 0.0
+        || !std::isfinite(_gripper_timeout_sec) || _gripper_timeout_sec <= 0.0) {
+        throw std::invalid_argument("Invalid gripper positions, effort or timeout");
+    }
+    _gripper_client = rclcpp_action::create_client<GripperMotion::Action>(
+            this, gripper_action, _client_cbk_group
+    );
+    _pick_server = create_service<EnqueueTriggerSrv>(
+            "pick",
+            [this](EnqueueTriggerSrv::Request::ConstSharedPtr,
+                   EnqueueTriggerSrv::Response::SharedPtr response) {
+                on_gripper_request(true, response);
+            }
+    );
+    _place_server = create_service<EnqueueTriggerSrv>(
+            "place",
+            [this](EnqueueTriggerSrv::Request::ConstSharedPtr,
+                   EnqueueTriggerSrv::Response::SharedPtr response) {
+                on_gripper_request(false, response);
+            }
+    );
 
     //  ____                  _
     // / ___|  ___ _ ____   _(_) ___ ___  ___
@@ -198,8 +232,9 @@ Ros2MotionPlanner::Ros2MotionPlanner() : rclcpp::Node("motion_planner") {
     // |  __/| |_| | |_) | | \__ \ | | |  __/ |  \__ \
     // |_|    \__,_|_.__/|_|_|___/_| |_|\___|_|  |___/
     //
-    _reference_group =
-            create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    // Queue-mutating services and reference stepping must not replace/destroy
+    // the active primitive concurrently. Action callbacks use their own group.
+    _reference_group = get_node_base_interface()->get_default_callback_group();
     setup_reference_publisher(planner().parameters().get_ee_link());
 
     _db_file  = declare_parameter("skill_database", SkillDatabase::default_database());
@@ -226,6 +261,44 @@ Ros2MotionPlanner::on_broadcast_state_request(
         deactivate_reference_broadcasting();
     }
     response->success = true;
+}
+
+void
+Ros2MotionPlanner::on_gripper_request(
+        bool pick, EnqueueTriggerSrv::Response::SharedPtr response
+) {
+    response->success = false;
+    if (!_gripper_client->action_server_is_ready()) {
+        response->message = "Gripper action server unavailable";
+        return;
+    }
+    const auto        pose = planner().motion_queue().get_queue_final_pose();
+    Motion::UniquePtr motion;
+    if (pick) {
+        motion = std::make_unique<PickMotion>(
+                pose,
+                _gripper_client,
+                _gripper_closed_position,
+                _gripper_max_effort,
+                _gripper_timeout_sec,
+                _gripper_pick_allow_stalled,
+                get_logger()
+        );
+    } else {
+        motion = std::make_unique<PlaceMotion>(
+                pose,
+                _gripper_client,
+                _gripper_open_position,
+                _gripper_max_effort,
+                _gripper_timeout_sec,
+                get_logger()
+        );
+    }
+    response->motion_ids.push_back(
+            planner().motion_queue().append_motion(std::move(motion))
+    );
+    response->success = true;
+    response->message = pick ? "Pick queued" : "Place queued";
 }
 
 void

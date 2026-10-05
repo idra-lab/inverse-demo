@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <inverse_msgs/srv/enqueue_trigger.hpp>
 #include <inverse_msgs/srv/execute_skill.hpp>
 #include <inverse_msgs/srv/hold_position.hpp>
 #include <inverse_msgs/srv/move_relative.hpp>
@@ -21,6 +22,7 @@
 
 #include "inverse_motion_planner/components/skill_database.hpp"
 #include "inverse_motion_planner/motion_planner.hpp"
+#include "inverse_motion_planner/motions/gripper_motion.hpp"
 #include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
 #include "inverse_motion_planner/ros2/ros2_robot_system.hpp"
 
@@ -96,6 +98,17 @@ private:
             TriggerSrv::Response::SharedPtr&           response
     );
     TriggerServer _safestop_server = nullptr;
+
+    using EnqueueTriggerSrv = inverse_msgs::srv::EnqueueTrigger;
+    rclcpp::Service<EnqueueTriggerSrv>::SharedPtr _pick_server;
+    rclcpp::Service<EnqueueTriggerSrv>::SharedPtr _place_server;
+    GripperMotion::Client::SharedPtr              _gripper_client;
+    double                                        _gripper_open_position      = 0.47;
+    double                                        _gripper_closed_position    = 0.7;
+    double                                        _gripper_max_effort         = 100.0;
+    double                                        _gripper_timeout_sec        = 10.0;
+    bool                                          _gripper_pick_allow_stalled = true;
+    void on_gripper_request(bool pick, EnqueueTriggerSrv::Response::SharedPtr response);
 
     using ReachPositionSrv    = inverse_msgs::srv::ReachPosition;
     using ReachPositionServer = rclcpp::Service<ReachPositionSrv>::SharedPtr;
