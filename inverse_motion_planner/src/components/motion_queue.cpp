@@ -88,11 +88,28 @@ std::size_t
 MotionQueue::append_motion(Motion::UniquePtr&& motion) {
     std::lock_guard<std::mutex> queue_mutex_lock(_queue_mutex);
     logger().info("Appending new motion to the queue: {}", motion->describe());
+
+    // Generate and assign id
     std::size_t id = _motion_id_count;
     ++_motion_id_count;
     motion->assign_id(id);
+
+    // Setup callbacks
+    auto publish_motion_start = [id, this]() {
+        std_msgs::msg::Int64 msg;
+        msg.data = id;
+        _start_publisher->publish(msg);
+    };
+    auto publish_motion_end = [id, this]() {
+        std_msgs::msg::Int64 msg;
+        msg.data = id;
+        _end_publisher->publish(msg);
+    };
+    motion->add_motion_start_hook(std::move(publish_motion_start));
+    motion->add_motion_completion_hook(std::move(publish_motion_end));
+
+    // Append motion
     _motion_queue.emplace(std::move(motion));
-    // TODO: add callbacks for start/end motion
     return id;
 }
 
