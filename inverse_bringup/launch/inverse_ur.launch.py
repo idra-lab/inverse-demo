@@ -114,6 +114,7 @@ def launch_realsense(context, *args, **kwargs):
                 # RGB stream
                 "rgb_camera.color_profile": "640x480x30",
                 "enable_color": True,
+                "enable_pointcloud": False,
                 # Depth stream
                 "depth_module.depth_profile": "640x480x30",
                 "enable_depth": True,
@@ -129,25 +130,6 @@ def launch_realsense(context, *args, **kwargs):
             }
         ],
     )
-
-    # ── image_transport: RGB → compressed ─────────────────────────────────────
-    # Reads  : /camera/color/image_raw
-    # Writes : /camera/color/image_raw/compressed
-    # rgb_compress = Node(
-    #     package="image_transport",
-    #     executable="republish",
-    #     name="rgb_republish_compressed",
-    #     arguments=["raw", "compressed"],
-    #     remappings=[
-    #         ("in",             "/camera/color/image_raw"),
-    #         ("out/compressed", "/camera/color/image_raw/compressed"),
-    #     ],
-    #     output="screen",
-    # )
-
-    # ── image_transport: aligned depth → compressedDepth ──────────────────────
-    # Reads  : /camera/aligned_depth_to_color/image_raw
-    # Writes : /camera/aligned_depth_to_color/image_raw/compressedDepth
 
     nodes_to_start += [realsense_node]
     return nodes_to_start

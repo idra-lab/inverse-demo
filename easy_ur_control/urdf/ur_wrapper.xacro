@@ -101,5 +101,10 @@
         <child link="target_link" />
     </joint>
 
+    <!-- D435if uses the D435i housing and frame model. -->
+    <xacro:include filename="$(find realsense2_description)/urdf/_d435i.urdf.xacro" />
+    <xacro:sensor_d435i parent="connector_tool_side" name="camera">
+        <origin xyz="0.085 0 0.01" rpy="${pi} -${pi/2} 0" />
+    </xacro:sensor_d435i>
 
 </robot>
