@@ -200,34 +200,8 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
-    # cam extrinsics
-    zed_pose_tf_pub = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    get_package_share_path("easy_handeye2"),
-                    "launch",
-                    "publish_zeds.launch.py",
-                )
-            ],
-        ),
-    )
-    zed_publishers = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    get_package_share_path("smpl_ros"),
-                    "launch",
-                    "cams.launch.py",
-                )
-            ]
-        )
-    )
-
     nodes_to_start += [
         # bota_launch,
-        zed_pose_tf_pub,
-        zed_publishers,
         ur_launch,
         Node(
             package="inverse_motion_planner",

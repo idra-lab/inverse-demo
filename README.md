@@ -38,6 +38,25 @@ All other dependencies for the ROS 2 packages can be easily installed through `r
    rosdep install --ignore-src -y --from-paths </path/to/ws>/src
    ```
 
+### Virtual environment
+
+OpenCV requires `numpy<2.0` thus conflicts with the system-installed numpy version.
+For this reason, prepare a separate virtual environment with pinned library versions:
+
+- create virtual environment:
+  ```bash
+  /usr/bin/python3 -m venv --system-site-packages ~/venvs/ros-aruco
+  ```
+- source it:
+  ```bash
+  source ~/venvs/ros-aruco/bin/activate
+  ```
+- install pinned dependencies:
+  ```bash
+  python -m pip install "numpy==1.26.4" \
+    "opencv-contrib-python-headless==4.10.0.84"
+  ```
+
 ## Task description
 - Task 1: The robot on the right pick and place the small block on the right to the mounting and the operator screw the two screws.
 - Task 2: The robot on the left pick and place the big block on the left over the right hole using a visuo/tactile peg-in-hole strategy, then it keep it in place while the human screws it.
@@ -75,7 +94,10 @@ graph TD;
    - spawn RViz;
    - TODO: add all frames to the launch file
    - start the motion planner.
-
+1. On another terminal, start the zed camera and SMPL body tracker nodes with the following commands:
+   ```
+   source ~/venvs/ros-aruco/bin/activate && ros2 launch smpl_ros cams.launch.py
+   ```
 1. For starting the execution of the actual task, on another terminal you must run the orchestrator as follows:
    ```
    ros2 run inverse_orchestrator orchestrator
