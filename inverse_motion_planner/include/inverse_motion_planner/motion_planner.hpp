@@ -2,9 +2,11 @@
 #define INVERSE_MOTION_PLANNER_HPP
 
 #include <memory>
+#include <string>
 
 #include <mdv/macros.hpp>
 #include <mdv/ros2/se3.hpp>
+#include <rclcpp/node.hpp>
 
 #include "inverse_motion_planner/components/motion_queue.hpp"
 #include "inverse_motion_planner/interfaces/parameters_interface.hpp"
@@ -18,7 +20,10 @@ public:
     MotionPlanner(
             mdv::Logger::SharedPtr     logger,
             RobotSystemInterface*      system_interface,
-            PlannerParameterInterface* parameters
+            PlannerParameterInterface* parameters,
+            rclcpp::Node*              node,
+            const std::string&         motion_start_topic,
+            const std::string&         motion_end_topic
     );
 
     /**

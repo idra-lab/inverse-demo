@@ -6,21 +6,32 @@
 MotionPlanner::MotionPlanner(
         mdv::Logger::SharedPtr     logger,
         RobotSystemInterface*      system_interface,
-        PlannerParameterInterface* parameters
+        PlannerParameterInterface* parameters,
+        rclcpp::Node*              node,
+        const std::string&               motion_start_topic,
+        const std::string&               motion_end_topic
 ) :
         _logger(std::move(logger)), _system(system_interface), _parameters(parameters) {
     Expects(_logger);
     Expects(_system);
     Expects(_parameters);
 
-    _motion_queue =
-            std::make_unique<MotionQueue>(system().current_ee_position(), _logger);
+    _motion_queue = std::make_unique<MotionQueue>(
+            system().current_ee_position(),
+            node,
+            motion_start_topic,
+            motion_end_topic,
+            _logger
+    );
     Ensures(_motion_queue);
 }
 
 MotionPlanner::Se3Pose
 MotionPlanner::step() {
-    if (current_motion().is_completed()) motion_queue().try_step_motion();
+    if (current_motion().is_completed()) {
+        current_motion().call_motion_completion_hooks();
+        motion_queue().try_step_motion();
+    }
     current_motion().step();
     return current_motion().current_reference_pose();
 };

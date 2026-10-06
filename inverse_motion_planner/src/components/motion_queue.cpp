@@ -54,21 +54,63 @@ private:
     Se3Pose _pose;
 };
 
-MotionQueue::MotionQueue(const Se3Pose& initial_pose, mdv::Logger::SharedPtr logger) :
+MotionQueue::MotionQueue(
+        const Se3Pose&         initial_pose,
+        rclcpp::Node*          node,
+        const std::string&     motion_start_topic,
+        const std::string&     motion_end_topic,
+        mdv::Logger::SharedPtr logger
+) :
         _logger(std::move(logger)) {
     Expects(_logger);
     KeepPosition mot(initial_pose);
     _curr_motion = std::make_unique<KeepPosition>(initial_pose);
 
+    using Int64 = std_msgs::msg::Int64;
+    _start_publisher =
+            node->create_publisher<Int64>(motion_start_topic, rclcpp::QoS(10));
+    _end_publisher = node->create_publisher<Int64>(motion_end_topic, rclcpp::QoS(10));
+    _logger->info(
+            "Topic '{}' publishes ID of motion that starts execution",
+            motion_start_topic
+    );
+    _logger->info(
+            "Topic '{}' publishes ID of motion that ends execution", motion_end_topic
+    );
+
     assert(_curr_motion);
     assert(_motion_queue.empty());
+    assert(_start_publisher != nullptr);
+    assert(_end_publisher != nullptr);
 }
 
-void
+std::size_t
 MotionQueue::append_motion(Motion::UniquePtr&& motion) {
     std::lock_guard<std::mutex> queue_mutex_lock(_queue_mutex);
     logger().info("Appending new motion to the queue: {}", motion->describe());
+
+    // Generate and assign id
+    std::size_t id = _motion_id_count;
+    ++_motion_id_count;
+    motion->assign_id(id);
+
+    // Setup callbacks
+    auto publish_motion_start = [id, this]() {
+        std_msgs::msg::Int64 msg;
+        msg.data = id;
+        _start_publisher->publish(msg);
+    };
+    auto publish_motion_end = [id, this]() {
+        std_msgs::msg::Int64 msg;
+        msg.data = id;
+        _end_publisher->publish(msg);
+    };
+    motion->add_motion_start_hook(std::move(publish_motion_start));
+    motion->add_motion_completion_hook(std::move(publish_motion_end));
+
+    // Append motion
     _motion_queue.emplace(std::move(motion));
+    return id;
 }
 
 void
@@ -112,8 +154,6 @@ MotionQueue::try_step_motion() {
 void
 MotionQueue::pop_from_queue() {
     if (_motion_queue.empty()) return;
-
-    _curr_motion->call_motion_completion_hooks();
 
     // Retrieve new plan
     auto new_plan = std::move(_motion_queue.front());

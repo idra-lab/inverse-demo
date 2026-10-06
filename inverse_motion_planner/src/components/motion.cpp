@@ -1,5 +1,7 @@
 #include "inverse_motion_planner/components/motion.hpp"
 
+#include <utility>
+
 void
 Motion::add_motion_start_hook(Callback&& cbk) {
     _on_motion_start_hooks.emplace_back(std::move(cbk));
@@ -17,5 +19,11 @@ Motion::call_motion_start_hooks() {
 
 void
 Motion::call_motion_completion_hooks() {
-    for (const auto& hook : _on_motion_completion_hooks) hook();
+    auto hooks = std::exchange(_on_motion_completion_hooks, {});
+    for (const auto& hook : hooks) hook();
+}
+
+void
+Motion::assign_id(std ::size_t id) {
+    _id = id;
 }

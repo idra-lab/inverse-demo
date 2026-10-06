@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <memory>
+#include <cstdint>
 
 #include <mdv/macros.hpp>
 #include <mdv/riemann_geometry/se3.hpp>
@@ -61,8 +62,12 @@ public:
 
     void call_motion_completion_hooks();
 
+    void assign_id(std::size_t id);
+
 private:
     LifecycleHooks _on_motion_start_hooks;
     LifecycleHooks _on_motion_completion_hooks;
+
+    std::size_t _id = -1;
 };
 #endif  // INVERSE_MOTION_PLANNER_MOTION_HPP

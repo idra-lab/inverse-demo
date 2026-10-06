@@ -3,3 +3,4 @@ float64 max_vel 0.25                    # maximum velocity in m/s
 bool immediate_execution false          # wether reaching the position has to be executed immediatly (cancelling all planned motions) or to be appended to the current motion queue
 ---
 bool success
+uint64[] motion_ids
