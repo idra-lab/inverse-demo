@@ -11,7 +11,7 @@ def generate_launch_description():
     # ------------------------------------------------------------------ #
     cam_serial_arg = DeclareLaunchArgument(
         "cam1_serial_number",
-        default_value="38787582",
+        default_value="39326402",
         description="Serial number of the first ZED camera (0 = first available)",
     )
     cam_frame_arg = DeclareLaunchArgument(
