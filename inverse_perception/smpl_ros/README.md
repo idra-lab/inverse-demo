@@ -50,6 +50,29 @@ To get started, make sure you have the following installed:
     ```
 
 ## 🚀 Running the Node
+
+### Fixed ArUco marker TF
+
+`ros2 launch smpl_ros cams.launch.py` also starts `aruco_static_tf.py`.
+Configure the constants at the top of `scripts/aruco_static_tf.py`: defaults
+are `DICT_6X6_250`, marker ID `0`, a **100 mm** black-square side length,
+and **50 valid detections**. Images and calibration come from
+`/camera_1/zed/image` and `/camera_1/zed/camera_info`.
+
+Keep both camera and marker stationary. The node averages translations and
+quaternion rotations, then publishes the marker center as `aruco_frame`
+relative to the image's camera frame on `/tf_static`. Marker axes are X right,
+Y up, and Z out of the printed face. The existing ZED image frame uses optical
+coordinates (X right, Y down, Z forward), despite its generic frame name.
+The node remains alive for late TF subscribers, but stops processing images
+after calibration. Restart it to recalibrate; no transform is saved to disk.
+
+The default image is rectified, so the node uses `CameraInfo.P` and zero
+distortion. Missing markers and poses exceeding the reprojection-error
+threshold do not count toward the sample total. Python OpenCV must include
+`cv2.aruco` and be binary-compatible with NumPy and `cv_bridge`; ROS Humble's
+system binaries generally require NumPy 1.x rather than NumPy 2.x.
+
 A fitting procedure example is provided in `fitting_smpl_ros.cpp`, it can be run with:
 ```
 ros2 launch smpl_ros smpl_ros_fitting.launch.py \

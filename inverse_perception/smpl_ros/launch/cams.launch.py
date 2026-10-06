@@ -60,11 +60,19 @@ def generate_launch_description():
         output="screen",
     )
 
+    aruco_node = Node(
+        package="smpl_ros",
+        executable="aruco_static_tf.py",
+        name="aruco_static_tf",
+        output="screen",
+    )
+
     return LaunchDescription(
         [
             cam_serial_arg,
             cam_frame_arg,
             camera_node,
             depth_republish_cam,
+            aruco_node,
         ]
     )

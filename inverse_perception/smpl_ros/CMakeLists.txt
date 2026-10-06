@@ -64,7 +64,10 @@ ament_target_dependencies(zed_smpl_tracking
 )
 
 # Install
-install(TARGETS zed_smpl_tracking 
+install(PROGRAMS scripts/aruco_static_tf.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(TARGETS zed_smpl_tracking
   DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY launch rviz config
