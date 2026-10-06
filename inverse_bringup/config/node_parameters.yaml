@@ -4,7 +4,7 @@
 
 /**/motion_planner:
   ros__parameters:
-    debug_prints: True
+    debug_prints: False
     debug_lib: False
     integration_timestep: 0.008
     frame_topic_name: "/target_frame"

@@ -46,31 +46,35 @@ def publish_poses(context, *args, **kwargs):
     Z_OFFSET = 0.0
 
     frames = {
-        "kit1_connector_grasp": (
-            [-0.084515, 0.9086, -0.036295 + Z_OFFSET],
-            [0.0, 1.0, 0.0, 0.0],
+        "homing": (
+            [-0.053, 0.404, 0.555],
+            [-0.572, 0.820, 0.018, -0.003],
         ),
-        "kit1_connector_deposit": (
-            [0.13952, 0.98642, 0.038777 + Z_OFFSET],
-            [0.0, 1.0, 0.0, 0.0],
-        ),
-        "kit1_screw1": (
-            [-0.085748, 0.75795, -0.037221 + Z_OFFSET_SCREW],  # done
-            [0.0, 1.0, 0.0, 0.0],
-        ),
-        #
-        "kit1_screw2": (
-            [-0.086444, 0.77307, -0.037636 + Z_OFFSET_SCREW],  # done
-            [0.0, 1.0, 0.0, 0.0],
-        ),
-        "kit1_screw1_deposit": (  # done
-            [0.14127, 0.96831, 0.047694 + Z_OFFSET],
-            [0.0, 1.0, 0.0, 0.0],
-        ),
-        "kit1_screw2_deposit": (
-            [0.14104, 1.0031, 0.051714 + Z_OFFSET],
-            [0.0, 1.0, 0.0, 0.0],
-        ),
+        # "kit1_connector_grasp": (
+        #     [-0.084515, 0.9086, -0.036295 + Z_OFFSET],
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
+        # "kit1_connector_deposit": (
+        #     [0.13952, 0.98642, 0.038777 + Z_OFFSET],
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
+        # "kit1_screw1": (
+        #     [-0.085748, 0.75795, -0.037221 + Z_OFFSET_SCREW],  # done
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
+        # #
+        # "kit1_screw2": (
+        #     [-0.086444, 0.77307, -0.037636 + Z_OFFSET_SCREW],  # done
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
+        # "kit1_screw1_deposit": (  # done
+        #     [0.14127, 0.96831, 0.047694 + Z_OFFSET],
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
+        # "kit1_screw2_deposit": (
+        #     [0.14104, 1.0031, 0.051714 + Z_OFFSET],
+        #     [0.0, 1.0, 0.0, 0.0],
+        # ),
     }
     for frame_name, (translation, rotation) in frames.items():
         node = Node(
@@ -158,7 +162,25 @@ def launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    start_controller = ExecuteProcess(
+    params_file = os.path.join(
+        get_package_share_path("inverse_bringup"), "config", "node_parameters.yaml",
+    )
+    motion_planner_node = Node(
+        package="inverse_motion_planner",
+        executable="motion_planner",
+        name="motion_planner",
+        output="screen",
+        parameters=[params_file,],
+    )
+    skill_learner_node = Node(
+        package="inverse_motion_planner",
+        executable="skill_learner",
+        name="skill_learner",
+        output="screen",
+        parameters=[params_file],
+    )
+
+    enable_planner = ExecuteProcess(
         cmd=[
             "ros2",
             "service",
@@ -169,38 +191,34 @@ def launch_setup(context, *args, **kwargs):
         ],
         output="screen",
     )
-
+    homing_motion = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "service",
+            "call",
+            "/reach_position",
+            "inverse_msgs/srv/ReachPosition",
+            (
+                "{desired_pos: {"
+                "header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'homing'}, "
+                "pose: {"
+                "position: {x: 0.0, y: 0.0, z: 0.0}, "
+                "orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}"
+                "}}, "
+                "max_vel: 0.05, immediate_execution: false}"
+            ),
+        ],
+        output="screen",
+    )
     nodes_to_start += [
         ur_launch,
-        Node(
-            package="inverse_motion_planner",
-            executable="motion_planner",
-            name="motion_planner",
-            output="screen",
-            parameters=[
-                os.path.join(
-                    get_package_share_path("inverse_bringup"),
-                    "config",
-                    "node_parameters.yaml",
-                ),
-            ],
+        TimerAction(
+            period=8.0,
+            actions=[motion_planner_node, skill_learner_node],
         ),
         TimerAction(
-            period=5.0,
-            actions=[start_controller],
-        ),
-        Node(
-            package="inverse_motion_planner",
-            executable="skill_learner",
-            name="skill_learner",
-            output="screen",
-            parameters=[
-                os.path.join(
-                    get_package_share_path("inverse_bringup"),
-                    "config",
-                    "node_parameters.yaml",
-                ),
-            ],
+            period=10.0,
+            actions=[enable_planner, homing_motion],
         ),
     ]
     return nodes_to_start
