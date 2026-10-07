@@ -13,10 +13,10 @@ from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 
 
 # Configuration: marker size is the outer black square, excluding white margins.
-ARUCO_DICTIONARY = cv2.aruco.DICT_6X6_250
+ARUCO_DICTIONARY = cv2.aruco.DICT_6X6_1000
 MARKER_ID = 0
 MARKER_SIZE_M = 0.100
-SAMPLE_COUNT = 50
+SAMPLE_COUNT = 10
 IMAGE_TOPIC = "/camera_1/zed/image"
 CAMERA_INFO_TOPIC = "/camera_1/zed/camera_info"
 MARKER_FRAME = "aruco_frame"
@@ -90,8 +90,10 @@ class ArucoStaticTF(Node):
         self.info_subscription = self.create_subscription(
             CameraInfo, CAMERA_INFO_TOPIC, self.on_camera_info, qos_profile_sensor_data
         )
+        # Reliable: full-res images span many UDP fragments; with best effort
+        # one lost fragment drops the frame, and often every frame is lost.
         self.image_subscription = self.create_subscription(
-            Image, IMAGE_TOPIC, self.on_image, qos_profile_sensor_data
+            Image, IMAGE_TOPIC, self.on_image, 1
         )
         self.get_logger().info(
             f"Waiting for marker {MARKER_ID}: averaging {SAMPLE_COUNT} valid poses "

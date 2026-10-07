@@ -183,10 +183,25 @@ int main(int argc, char **argv)
     // CameraInfo is the same for image and depth (same left sensor)
     const auto cam_info_msg = build_camera_info(left_cam, frame_id, stamp);
 
+    // Skip retrieval/encoding for streams nobody is subscribed to
+    const bool want_image = image_pub->get_subscription_count() > 0;
+    const bool want_image_compressed =
+        image_compressed_pub->get_subscription_count() > 0;
+    const bool want_camera_info = camera_info_pub->get_subscription_count() > 0;
+    const bool want_depth = depth_pub->get_subscription_count() > 0;
+    const bool want_depth_camera_info =
+        depth_camera_info_pub->get_subscription_count() > 0;
+
+    if (want_camera_info)
+      camera_info_pub->publish(cam_info_msg);
+    if (want_depth_camera_info)
+      depth_camera_info_pub->publish(cam_info_msg);
+
     // ---------------- IMAGE ----------------
     sl::Mat zed_image;
-    if (client.zed.retrieveImage(zed_image, sl::VIEW::LEFT) ==
-        sl::ERROR_CODE::SUCCESS)
+    if ((want_image || want_image_compressed) &&
+        client.zed.retrieveImage(zed_image, sl::VIEW::LEFT) ==
+            sl::ERROR_CODE::SUCCESS)
     {
       cv::Mat cvImage(
           zed_image.getHeight(),
@@ -194,15 +209,17 @@ int main(int argc, char **argv)
           CV_8UC4,
           zed_image.getPtr<sl::uchar1>(sl::MEM::CPU));
       cv::cvtColor(cvImage, cvImage, cv::COLOR_BGRA2BGR);
-      publish_image_msg(image_pub, cvImage, frame_id);
-      publish_compressed_image_msg(image_compressed_pub, cvImage, frame_id);
-      camera_info_pub->publish(cam_info_msg);
+      if (want_image)
+        publish_image_msg(image_pub, cvImage, frame_id);
+      if (want_image_compressed)
+        publish_compressed_image_msg(image_compressed_pub, cvImage, frame_id);
     }
 
     // ---------------- DEPTH ----------------
     sl::Mat zed_depth;
-    if (client.zed.retrieveMeasure(zed_depth, sl::MEASURE::DEPTH) ==
-        sl::ERROR_CODE::SUCCESS)
+    if (want_depth &&
+        client.zed.retrieveMeasure(zed_depth, sl::MEASURE::DEPTH) ==
+            sl::ERROR_CODE::SUCCESS)
     {
       cv::Mat cvDepth(
           zed_depth.getHeight(),
@@ -218,7 +235,6 @@ int main(int argc, char **argv)
       depth_msg->header.stamp    = stamp;
       depth_msg->header.frame_id = frame_id;
       depth_pub->publish(*depth_msg);
-      depth_camera_info_pub->publish(cam_info_msg);
     }
 
     // ---------------- HUMAN ----------------

@@ -12,7 +12,7 @@ bool ClientPublisher::open(sl::InputType input,
                            sl::RESOLUTION resolution,
                            int sdk_gpu_id) {
   sl::InitParameters init;
-  init.depth_mode = sl::DEPTH_MODE::NEURAL_PLUS;
+  init.depth_mode = sl::DEPTH_MODE::NEURAL_LIGHT;
   init.input = input;
   init.coordinate_units = sl::UNIT::METER;
   init.coordinate_system = coord_system;

@@ -64,7 +64,7 @@ ament_target_dependencies(zed_smpl_tracking
 )
 
 # Install
-install(PROGRAMS scripts/aruco_static_tf.py
+install(PROGRAMS scripts/aruco_static_tf.py scripts/nearest_joint_to_aruco.py
   DESTINATION lib/${PROJECT_NAME}
 )
 install(TARGETS zed_smpl_tracking
