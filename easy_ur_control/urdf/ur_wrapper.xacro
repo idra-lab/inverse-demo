@@ -91,13 +91,45 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:robotiq_gripper>
 
+    <!-- Finger tips -->
+    <link name="left_finger_tip">
+        <visual>
+            <!-- Tip dimensions: x = 8 mm, y = 100 - 32.5 mm, z = 4 mm. -->
+            <!-- Apply offset of y/2 -->
+            <origin xyz="0.0 0.03375 0.0015" />
+            <geometry>
+                <box size="0.008 0.0675 0.004" />
+            </geometry>
+        </visual>
+    </link>
+    <joint name="left_finger_tip_joint" type="fixed">
+        <parent link="left_inner_finger_pad" />
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <child link="left_finger_tip" />
+    </joint>
 
+    <link name="right_finger_tip">
+        <visual>
+            <!-- Tip dimensions: x = 8 mm, y = 100 - 32.5 mm, z = 4 mm. -->
+            <!-- Apply offset of y/2 -->
+            <origin xyz="0.0 0.03375 0.0015" />
+            <geometry>
+                <box size="0.008 0.0675 0.004" />
+            </geometry>
+        </visual>
+    </link>
+    <joint name="right_finger_tip_joint" type="fixed">
+        <parent link="right_inner_finger_pad" />
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <child link="right_finger_tip" />
+    </joint>
 
+    <!-- Controlled reference frame -->
     <link name="target_link">
     </link>
     <joint name="final_joint" type="fixed">
         <parent link="robotiq_140_base_link" />
-        <origin xyz="0 0.0 0.2" rpy="0 0 0" />
+        <origin xyz="0 0.0 0.2675" rpy="0 0 0" />
         <child link="target_link" />
     </joint>
 

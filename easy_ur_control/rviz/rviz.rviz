@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Image1
-        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 397
   - Class: rviz_common/Selection
@@ -125,6 +124,11 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        left_finger_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         left_inner_finger:
           Alpha: 1
           Show Axes: false
@@ -146,6 +150,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         left_outer_knuckle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_finger_tip:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -266,7 +275,27 @@ Visualization Manager:
         Value: /zed/image
       Value: true
     - Alpha: 1
-      Axes Length: 0.30000001192092896
+      Axes Length: 0.20000000298023224
+      Axes Radius: 0.019999999552965164
+      Class: rviz_default_plugins/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /target_frame
+      Value: true
+    - Alpha: 1
+      Axes Length: 0.10000000149011612
       Axes Radius: 0.05000000074505806
       Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
@@ -283,7 +312,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /notworking
+        Value: /goal_pose
       Value: true
   Enabled: true
   Global Options:
@@ -331,7 +360,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.982034206390381
+      Distance: 1.822178840637207
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -346,10 +375,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.785398006439209
+      Pitch: 0.725398063659668
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.785398006439209
+      Yaw: 1.4503978490829468
     Saved: ~
 Window Geometry:
   Displays:
@@ -369,5 +398,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1043
-  X: 70
-  Y: 180
+  X: 1820
+  Y: 116

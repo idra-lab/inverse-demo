@@ -47,7 +47,7 @@ def publish_poses(context, *args, **kwargs):
 
     frames = {
         "homing": (
-            [-0.053, 0.404, 0.555],
+            [-0.053, 0.404, 0.485],
             [-0.572, 0.820, 0.018, -0.003],
         ),
         # "kit1_connector_grasp": (
