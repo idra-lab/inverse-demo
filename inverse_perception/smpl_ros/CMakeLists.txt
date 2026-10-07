@@ -57,6 +57,7 @@ ament_target_dependencies(zed_smpl_tracking
   rclcpp
   smpl_msgs
   sensor_msgs
+  geometry_msgs
   tf2_ros
   cv_bridge
   compressed_depth_image_transport

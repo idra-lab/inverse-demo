@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Average a fixed ArUco marker's pose and publish it on /tf_static."""
+"""Average a fixed ArUco marker's pose and publish it on /tf_static.
+
+The TF is published as marker -> camera, so the marker frame can be attached
+to the robot (e.g. base_link -> aruco_frame in the URDF) without giving it a
+second parent.
+"""
 
 import cv2
 import numpy as np
@@ -48,6 +53,16 @@ def rotation_to_quaternion(rotation):
     return q / np.linalg.norm(q)
 
 
+def quaternion_to_rotation(q):
+    """Convert a ROS-order quaternion (xyzw) to a rotation matrix."""
+    x, y, z, w = q
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+        [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+        [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+    ])
+
+
 def average_quaternions(quaternions):
     """Markley mean: q and -q represent the same rotation."""
     samples = np.asarray(quaternions)
@@ -83,7 +98,7 @@ class ArucoStaticTF(Node):
             [half, -half, 0.0], [-half, -half, 0.0],
         ], dtype=np.float64)
         self.camera_info = None
-        self.parent_frame = None
+        self.camera_frame = None
         self.translations = []
         self.quaternions = []
         self.published = False
@@ -159,10 +174,10 @@ class ArucoStaticTF(Node):
         except (cv2.error, RuntimeError, ValueError) as exc:
             self.get_logger().warning(f"Marker processing failed: {exc}", throttle_duration_sec=5.0)
             return
-        if self.parent_frame != msg.header.frame_id:
+        if self.camera_frame != msg.header.frame_id:
             self.translations.clear()
             self.quaternions.clear()
-            self.parent_frame = msg.header.frame_id
+            self.camera_frame = msg.header.frame_id
         self.translations.append(tvec.reshape(3))
         self.quaternions.append(rotation_to_quaternion(rotation))
         count = len(self.translations)
@@ -172,12 +187,16 @@ class ArucoStaticTF(Node):
             self.publish_transform()
 
     def publish_transform(self):
-        translation = np.mean(self.translations, axis=0)
-        quaternion = average_quaternions(self.quaternions)
+        # Averaged marker pose in the camera frame (camera -> marker)
+        camera_t_marker = np.mean(self.translations, axis=0)
+        camera_q_marker = average_quaternions(self.quaternions)
+        # Invert it: marker -> camera
+        translation = -quaternion_to_rotation(camera_q_marker).T @ camera_t_marker
+        quaternion = camera_q_marker * np.array([-1.0, -1.0, -1.0, 1.0])
         transform = TransformStamped()
         transform.header.stamp = self.get_clock().now().to_msg()
-        transform.header.frame_id = self.parent_frame
-        transform.child_frame_id = MARKER_FRAME
+        transform.header.frame_id = MARKER_FRAME
+        transform.child_frame_id = self.camera_frame
         transform.transform.translation.x = float(translation[0])
         transform.transform.translation.y = float(translation[1])
         transform.transform.translation.z = float(translation[2])
@@ -190,7 +209,7 @@ class ArucoStaticTF(Node):
         self.destroy_subscription(self.image_subscription)
         self.destroy_subscription(self.info_subscription)
         self.get_logger().info(
-            f"Published static TF {self.parent_frame} -> {MARKER_FRAME}: "
+            f"Published static TF {MARKER_FRAME} -> {self.camera_frame}: "
             f"translation={translation.tolist()} m, quaternion={quaternion.tolist()}. "
             "Restart this node to recalibrate."
         )

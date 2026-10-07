@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -12,6 +13,7 @@
 #include <thread>
 #include "smpl_msgs/msg/smpl.hpp"
 #include "tf2_ros/static_transform_broadcaster.h"
+#include "tf2_ros/transform_broadcaster.h"
 #include "utils/json.hpp"
 #include "zed_smpl_tracking/ClientPublisher.hpp"
 #include "zed_smpl_tracking/bodyConverter.hpp"
@@ -118,6 +120,13 @@ int main(int argc, char **argv)
   auto depth_camera_info_pub =
       node->create_publisher<sensor_msgs::msg::CameraInfo>(
           "zed/depth/camera_info", 10);
+  auto pelvis_pub =
+      node->create_publisher<geometry_msgs::msg::PointStamped>(
+          "smpl/pelvis", 10);
+  auto right_hand_pub =
+      node->create_publisher<geometry_msgs::msg::PointStamped>(
+          "smpl/right_hand", 10);
+  tf2_ros::TransformBroadcaster joint_tf_broadcaster(node);
 
   SMPLRviz rviz(node, frame_id);
 
@@ -265,6 +274,37 @@ int main(int argc, char **argv)
 
       Eigen::Matrix<double, 24, 3> kp = kp_raw;
       rviz.publish_upper_body(kp, stamp);
+
+      // Single-joint positions, same frame and stamp as the markers,
+      // published as PointStamped and as TF frame_id -> joint_frame
+      // (position only, identity rotation).
+      // SMPL indices: 0 = pelvis, 23 = right_hand
+      auto publish_joint = [&](const auto &pub, int smpl_idx,
+                               const std::string &joint_frame)
+      {
+        const Eigen::Vector3d p = kp.row(smpl_idx).transpose();
+        // Undetected joints are NaN, missing ones exact zeros: skip both
+        if (!p.allFinite() || p.isZero())
+          return;
+        geometry_msgs::msg::PointStamped msg;
+        msg.header.stamp = stamp;
+        msg.header.frame_id = frame_id;
+        msg.point.x = p.x();
+        msg.point.y = p.y();
+        msg.point.z = p.z();
+        pub->publish(msg);
+
+        geometry_msgs::msg::TransformStamped tf;
+        tf.header = msg.header;
+        tf.child_frame_id = joint_frame;
+        tf.transform.translation.x = p.x();
+        tf.transform.translation.y = p.y();
+        tf.transform.translation.z = p.z();
+        tf.transform.rotation.w = 1.0;
+        joint_tf_broadcaster.sendTransform(tf);
+      };
+      publish_joint(pelvis_pub, 0, "pelvis");
+      publish_joint(right_hand_pub, 23, "right_hand");
 
       auto bodies_out = extractBodyData({bodies.body_list[0]}, SMPL_TO_ZED);
       auto smpl_msg = buildSMPLMessage(bodies_out[0], smpl_to_ros_transform(), {});
