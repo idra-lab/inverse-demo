@@ -139,4 +139,15 @@
         <origin xyz="0.085 0 0.01" rpy="${pi} -${pi/2} 0" />
     </xacro:sensor_d435i>
 
+
+    <!-- Aruco frame -->
+    <link name="aruco_link">
+    </link>
+    <joint name="aruco_joint" type="fixed">
+        <parent link="base_link" />
+        <origin xyz="0 0.91 0.04" rpy="0 0 -${pi/2}" />
+        <child link="aruco_link" />
+    </joint>
+
+
 </robot>
