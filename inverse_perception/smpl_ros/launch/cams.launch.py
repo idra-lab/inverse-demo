@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -18,6 +19,11 @@ def generate_launch_description():
         "cam1_frame_id",
         default_value="zed_camera_1_frame",
         description="TF frame id for the first camera",
+    )
+    goal_pose_arg = DeclareLaunchArgument(
+        "goal_pose",
+        default_value="false",
+        description="Body proximity target: true = latest /goal_pose, false = aruco_frame",
     )
 
     # ------------------------------------------------------------------ #
@@ -78,6 +84,37 @@ def generate_launch_description():
         output="screen",
     )
 
+    hand_proximity_node = Node(
+        package="smpl_ros",
+        executable="hand_proximity_monitor.py",
+        name="hand_proximity_monitor",
+        output="screen",
+        parameters=[
+            {
+                "near_distance": 0.20,
+                "clear_distance": 0.25,
+                "stale_timeout": 0.5,
+            }
+        ],
+    )
+
+    body_proximity_node = Node(
+        package="smpl_ros",
+        executable="body_proximity_monitor.py",
+        name="body_proximity_monitor",
+        output="screen",
+        parameters=[
+            {
+                "use_goal_pose": ParameterValue(
+                    LaunchConfiguration("goal_pose"), value_type=bool
+                ),
+                "near_distance": 0.20,
+                "clear_distance": 0.25,
+                "stale_timeout": 0.5,
+            }
+        ],
+    )
+
     # nearest_joint_node = Node(
     #     package="smpl_ros",
     #     executable="nearest_joint_to_aruco.py",
@@ -89,10 +126,13 @@ def generate_launch_description():
         [
             cam_serial_arg,
             cam_frame_arg,
+            goal_pose_arg,
             camera_node,
             depth_republish_cam,
             aruco_node,
             aruco_link_node,
+            hand_proximity_node,
+            body_proximity_node,
             # nearest_joint_node,
         ]
     )
