@@ -172,6 +172,7 @@ private:
     using PosePublisher = rclcpp::Publisher<PoseStamped>::SharedPtr;
     rclcpp::CallbackGroup::SharedPtr _reference_group     = nullptr;
     PosePublisher                    _reference_publisher = nullptr;
+    PosePublisher                    _goal_publisher      = nullptr;
     Timer                            _reference_timer     = nullptr;
 
     void setup_reference_publisher(const std::string& link_name);

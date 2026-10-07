@@ -526,6 +526,13 @@ Ros2MotionPlanner::setup_reference_publisher(const std::string& link_name) {
             "Publishing reference pose on topic {}",
             _reference_publisher->get_topic_name()
     );
+    _goal_publisher = create_publisher<PoseStamped>(
+            "/goal_pose", rclcpp::QoS(1).durability_volatile()
+    );
+    assert(_goal_publisher);
+    logger().info(
+            "Publishing goal pose on topic {}", _goal_publisher->get_topic_name()
+    );
 }
 
 void
@@ -547,6 +554,11 @@ Ros2MotionPlanner::activate_reference_broadcasting() {
         auto       ref        = Se3Pose(planner().step());
         const auto ref_framed = Se3Framed(ref, planner().parameters().get_base_link());
         _reference_publisher->publish(mdv::ros2::to_pose_message(ref_framed));
+        const auto goal_framed = Se3Framed(
+                planner().current_motion().final_pose(),
+                planner().parameters().get_base_link()
+        );
+        _goal_publisher->publish(mdv::ros2::to_pose_message(goal_framed));
     };
 
     assert(_reference_group);
