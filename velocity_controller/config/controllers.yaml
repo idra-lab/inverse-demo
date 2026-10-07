@@ -1,0 +1,83 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500
+    use_sim_time: true
+
+    cartesian_position_controller:
+      type: velocity_controller/CartesianPositionController
+
+    cartesian_velocity_controller:
+      type: velocity_controller/CartesianPositionController
+
+    cartesian_position_velocity_controller:
+      type: velocity_controller/CartesianPositionController
+
+# --- Cartesian position controller (and its command_mode siblings) ---------
+# command_mode: position
+cartesian_position_controller:
+  ros__parameters:
+    type: velocity_controller/CartesianPositionController
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    base_link: base_link
+    tip_link: tool0
+    command_mode: position
+    P_gain: 1.0
+    jacobian_damping_max: 10.0
+    singularity_threshold: 0.05
+    command_timeout: 0.1
+    trajectory_duration: 0.02
+    velocity_scale: 0.5  #Hard limit on joint velocity in the controller (0.5 = 50% of URDF limit)
+    use_speed_scaling: false #Dynamic scale of the velocity based on the speed_scaling_state_broadcaster (slider from dashboard / teach pendant)
+    speed_scaling_topic: /speed_scaling_state_broadcaster/speed_scaling
+
+# command_mode: velocity (P_gain overridden to 0.0 at configure time)
+cartesian_velocity_controller:
+  ros__parameters:
+    type: velocity_controller/CartesianPositionController
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    base_link: base_link
+    tip_link: tool0
+    command_mode: velocity
+    P_gain: 1.0  # overridden to 0.0 at configure time -- see command_mode above
+    jacobian_damping_max: 10.0
+    singularity_threshold: 0.05
+    command_timeout: 0.1
+    velocity_scale: 0.5  #Hard limit on joint velocity in the controller (0.5 = 50% of URDF limit)
+    use_speed_scaling: false
+    speed_scaling_topic: /speed_scaling_state_broadcaster/speed_scaling
+
+# command_mode: position_velocity
+cartesian_position_velocity_controller:
+  ros__parameters:
+    type: velocity_controller/CartesianPositionController
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    base_link: base_link
+    tip_link: tool0
+    command_mode: position_velocity
+    P_gain: 1.0
+    jacobian_damping_max: 10.0
+    singularity_threshold: 0.05
+    command_timeout: 0.1
+    trajectory_duration: 0.02
+    stale_deceleration_time: 0.2
+    velocity_scale: 0.5  #Hard limit on joint velocity in the controller (0.5 = 50% of URDF limit)
+    use_speed_scaling: false
+    speed_scaling_topic: /speed_scaling_state_broadcaster/speed_scaling
