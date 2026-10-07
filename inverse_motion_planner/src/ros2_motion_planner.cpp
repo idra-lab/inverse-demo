@@ -21,6 +21,7 @@
 #include "inverse_motion_planner/motions/discrete_dmp_motion.hpp"
 #include "inverse_motion_planner/motions/dmp_motion_interface.hpp"
 #include "inverse_motion_planner/motions/hold_position.hpp"
+#include "inverse_motion_planner/motions/profiled_ptp_motion.hpp"
 #include "inverse_motion_planner/motions/raw_trajectory.hpp"
 #include "inverse_motion_planner/motions/rhytmic_dmp_motion.hpp"
 #include "inverse_motion_planner/ros2/ros2_motion_parameters.hpp"
@@ -324,15 +325,12 @@ Ros2MotionPlanner::on_reachposition_request(
     logger().info("Received request to reach {}", mdv::ros2::describe(framed_goal));
     const Se3Pose goal = planner().display_in_base(framed_goal);
 
-    DmpParameters params;
-    params.max_vel = request->max_vel;
-
     if (request->immediate_execution) {
         logger().warn("Position shall be reached immediately!");
 
         const auto curr_ref = planner().current_motion().current_reference_pose();
-        auto       new_plan = DiscreteDmpMotion::linear_interpolation(
-                curr_ref, goal, planner().parameters().get_dt(), params
+        auto       new_plan = std::make_unique<ProfiledPtpMotion>(
+                curr_ref, goal, planner().parameters().get_dt(), request->max_vel
         );
 
         // TODO:
@@ -343,11 +341,11 @@ Ros2MotionPlanner::on_reachposition_request(
 
 
     } else {
-        auto new_plan = DiscreteDmpMotion::linear_interpolation(
+        auto new_plan = std::make_unique<ProfiledPtpMotion>(
                 planner().motion_queue().get_queue_final_pose(),
                 goal,
                 planner().parameters().get_dt(),
-                params
+                request->max_vel
         );
         const auto id = planner().motion_queue().append_motion(std::move(new_plan));
         response->motion_ids.push_back(id);
@@ -370,26 +368,23 @@ Ros2MotionPlanner::on_ptp_motion_request(
             mdv::ros2::describe(g)
     );
 
-    DmpParameters params;
-    params.max_vel = request->max_vel;
-
     if (request->plan_y0_motion) {
         logger().info("Adding motion to reach the initial configuration");
-        auto plan = DiscreteDmpMotion::linear_interpolation(
+        auto plan = std::make_unique<ProfiledPtpMotion>(
                 planner().motion_queue().get_queue_final_pose(),
                 planner().display_in_base(y0),
                 planner().parameters().get_dt(),
-                params
+                request->max_vel
         );
         const auto id = planner().motion_queue().append_motion(std::move(plan));
         response->motion_ids.push_back(id);
     }
 
-    auto plan = DiscreteDmpMotion::linear_interpolation(
+    auto plan = std::make_unique<ProfiledPtpMotion>(
             planner().display_in_base(y0),
             planner().display_in_base(g),
             planner().parameters().get_dt(),
-            params
+            request->max_vel
     );
     const auto id = planner().motion_queue().append_motion(std::move(plan));
     response->motion_ids.push_back(id);
@@ -441,10 +436,8 @@ Ros2MotionPlanner::on_move_relative_request(
     const Se3Framed g{
             Se3Pose::from_affine(y0.to_affine() * transform_in_ee), base_link};
 
-    DmpParameters params;
-    params.max_vel = req->max_vel;
-    auto plan      = DiscreteDmpMotion::linear_interpolation(
-            y0, g, planner().parameters().get_dt(), params
+    auto plan = std::make_unique<ProfiledPtpMotion>(
+            y0, g, planner().parameters().get_dt(), req->max_vel
     );
     const auto id = planner().motion_queue().append_motion(std::move(plan));
     resp->motion_ids.push_back(id);
