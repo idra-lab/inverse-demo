@@ -127,4 +127,9 @@ install(
     DESTINATION lib/${PROJECT_NAME}
 )
 
+install(
+    PROGRAMS scripts/reach_frame
+    DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

@@ -26,6 +26,33 @@ docs here https://github.com/magician-project/magician_documentation/blob/main/t
 - `/motion_planner/hold_position` (type `magician_msgs/srv/HoldPosition`): a simple motion primitives that stays in a point for a given amount of seconds;
 - `/motion_planner/ptp_time_estimate` (type `magician_msgs/srv/PointToPointTime`): provides the time-transition matrix for reaching some poses;
 
+## Move to a TF frame
+
+After building and sourcing the workspace, enqueue a target pose with:
+
+```bash
+ros2 run inverse_motion_planner reach_frame homing
+ros2 run inverse_motion_planner reach_frame bus_bar --velocity 0.08
+```
+
+The script calls `/reach_position` (`inverse_msgs/srv/ReachPosition`) with a
+default velocity of **0.05 m/s**. It uses the named frame if it exists;
+otherwise, it requires both `via(name)` and `obs(name)` and queues them in that
+order. Both fallback frame names are checked before sending any request. Each
+request specifies an identity pose in the selected frame; the planner handles
+transform lookup and validity. The script does not look up poses. Existing
+queued motions are preserved. Reference broadcasting must be enabled for motion.
+
+Use `--service NAME` for a namespaced service, and `--timeout SECONDS` to change the
+TF discovery/service timeout (default: 5 seconds). Quote explicit frame names
+containing parentheses, e.g. `'obs(bus_bar)'`.
+
+Targets are pose snapshots, not continuously tracked frames. Success means
+**queued**, not completed, and TF availability does not guarantee collision
+safety or reachability. The two fallback requests are not atomic: if the second
+fails, the first remains queued. A service timeout may also leave a request queued;
+check the planner before retrying.
+
 ## Queued gripper primitives
 
 `/motion_planner/pick` (close) and `/motion_planner/place` (open) use

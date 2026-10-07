@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Enqueue motion to a TF frame, or via(name) followed by obs(name)."""
+
+import argparse
+import math
+import sys
+import time
+
+import rclpy
+import yaml
+from inverse_msgs.srv import ReachPosition
+from rclpy.utilities import remove_ros_args
+from tf2_ros import Buffer, TransformListener
+
+
+def positive_float(value):
+    number = float(value)
+    if not math.isfinite(number) or number <= 0:
+        raise argparse.ArgumentTypeError("must be a positive, finite number")
+    return number
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("target", help="target TF frame or fallback name")
+    parser.add_argument("--velocity", type=positive_float, default=0.05,
+                        help="maximum velocity in m/s (default: 0.05)")
+    parser.add_argument("--service", default="/reach_position",
+                        help="ReachPosition service (default: /reach_position)")
+    parser.add_argument("--timeout", type=positive_float, default=5.0,
+                        help="TF discovery/service timeout in seconds (default: 5)")
+    return parser.parse_args(remove_ros_args(args=argv)[1:])
+
+
+def available_frames(buffer):
+    frames = yaml.safe_load(buffer.all_frames_as_yaml()) or {}
+    # Root frames occur as parents rather than as entries in the TF buffer.
+    return set(frames) | {info["parent"] for info in frames.values()}
+
+
+def resolve_targets(node, buffer, target, timeout):
+    deadline = time.monotonic() + timeout
+    while rclpy.ok():
+        known_frames = available_frames(buffer)
+        if target in known_frames:
+            return [target]
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        rclpy.spin_once(node, timeout_sec=min(0.05, remaining))
+
+    if not rclpy.ok():
+        raise RuntimeError("ROS shut down during TF discovery")
+
+    # Check both fallback names before submitting any motion request.
+    frames = [f"via({target})", f"obs({target})"]
+    if all(frame in known_frames for frame in frames):
+        return frames
+    raise RuntimeError(f"TF frame '{target}' or both {frames} must exist")
+
+
+def enqueue(node, client, frame, velocity, timeout):
+    request = ReachPosition.Request()
+    request.desired_pos.header.frame_id = frame
+    request.desired_pos.pose.orientation.w = 1.0
+    request.max_vel = velocity
+    request.immediate_execution = False
+    future = client.call_async(request)
+    rclpy.spin_until_future_complete(node, future, timeout_sec=timeout)
+    if not future.done():
+        raise RuntimeError(
+            f"Timed out requesting '{frame}'; it may already be queued. "
+            "Do not retry blindly."
+        )
+    try:
+        response = future.result()
+    except Exception as exc:
+        raise RuntimeError(f"Request for '{frame}' failed: {exc}") from exc
+    if response is None or not response.success:
+        raise RuntimeError(f"Planner rejected '{frame}'")
+    node.get_logger().info(
+        f"Queued '{frame}' at {velocity:g} m/s; motion IDs: {list(response.motion_ids)}"
+    )
+
+
+def main(argv=None):
+    argv = sys.argv if argv is None else argv
+    args = parse_args(argv)
+    rclpy.init(args=argv)
+    node = rclpy.create_node("reach_frame_cli")
+    buffer = Buffer()
+    listener = TransformListener(buffer, node)
+    queued_count = 0
+    try:
+        client = node.create_client(ReachPosition, args.service)
+        if not client.wait_for_service(timeout_sec=args.timeout):
+            raise RuntimeError(f"Service '{args.service}' is unavailable")
+        targets = resolve_targets(
+            node, buffer, args.target, args.timeout
+        )
+        node.get_logger().info(
+            "Resolved route: " + " -> ".join(targets)
+        )
+        for frame in targets:
+            enqueue(node, client, frame, args.velocity, args.timeout)
+            queued_count += 1
+        return 0
+    except (RuntimeError, KeyboardInterrupt) as exc:
+        node.get_logger().error(str(exc) or "Interrupted")
+        if queued_count:
+            node.get_logger().warn(
+                f"{queued_count} motion request(s) were already accepted; "
+                "they have not been cancelled."
+            )
+        return 1
+    finally:
+        listener.unregister()
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
