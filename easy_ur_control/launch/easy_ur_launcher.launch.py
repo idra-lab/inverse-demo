@@ -33,13 +33,17 @@ def declare_args():
     declared_arguments.append(
         DeclareLaunchArgument(
             "ctrl",
-            description="Name of the controller to be activated.",
+            description=(
+                "Controller to spawn; "
+                "defaults to cartesian_motion_controller"
+                ),
             default_value="cartesian_motion_controller",
             choices=[
                 "cartesian_motion_controller",
                 "cartesian_compliance_controller",
                 "joint_trajectory_controller",
                 "cartesian_force_controller",
+                "cartesian_velocity_controller",
             ],
         )
     )
@@ -127,10 +131,14 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(LaunchConfiguration("rviz")),
     )
     controller = LaunchConfiguration("ctrl").perform(context)
+    spawner_arguments = [controller, "-c", "/controller_manager"]
+    # The experimental velocity controller requires explicit operator activation.
+    if controller == "cartesian_velocity_controller":
+        spawner_arguments.append("--inactive")
     controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[controller, "-c", "/controller_manager"],
+        arguments=spawner_arguments,
     )
 
     return [

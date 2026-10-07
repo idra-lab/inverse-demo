@@ -73,3 +73,30 @@ latest pose. See the controller header for the original interpolation details.
 
 Diagnostics are published under `~`: `interpolated_pose`, `interpolated_twist`,
 and `jacobian_determinant`.
+
+## inverse_bringup integration
+
+Robot-specific settings are also registered in
+`inverse_bringup/config/ur_controllers.yaml`, preserving its 125 Hz manager rate
+and clock settings. This configuration uses a 10% URDF joint-velocity limit,
+speed scaling, and the prefixed `base_link` / `tool0` chain. Unlike the existing
+motion controller, it does not command the `target_link` TCP.
+
+```bash
+ros2 launch inverse_bringup inverse_ur.launch.py use_fake_hardware:=true ctrl:=cartesian_velocity_controller
+```
+
+The existing default controller is unchanged. When selected through bringup,
+the velocity controller is loaded and configured **inactive**. After checking
+the hardware interfaces, frame convention, and command publisher, activate it
+explicitly (deactivating any active arm-motion controllers first):
+
+```bash
+ros2 control set_controller_state cartesian_velocity_controller active
+```
+
+The command topic remains `/cartesian_velocity_controller/commands`, using
+`inverse_msgs/msg/CartesianTrajectoryPoint` with advancing trajectory times.
+Fake-hardware checks do not establish hardware safety; the original controller
+limitations remain unchanged. The standalone package launch described above
+still activates its selected controller directly.
