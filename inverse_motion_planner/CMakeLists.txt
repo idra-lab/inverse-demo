@@ -45,6 +45,7 @@ find_and_log_required(std_srvs)
 find_and_log_required(geometry_msgs)
 find_and_log_required(inverse_msgs)
 find_and_log_required(tf2_ros)
+find_and_log_required(ruckig)
 
 add_library(
     motion_planner_commons
@@ -61,6 +62,7 @@ add_library(
     src/motions/rhytmic_dmp_motion.cpp
     src/motions/raw_trajectory.cpp
     src/motions/peg_in_hole.cpp
+    src/motions/profiled_ptp_motion.cpp
     src/ros2/ros2_motion_parameters.cpp
     src/ros2/ros2_robot_system.cpp
 )
@@ -83,6 +85,8 @@ target_link_libraries(
     Eigen3::Eigen
     mdvcpplib::mdvcpplib
     nlohmann_json::nlohmann_json
+    PRIVATE
+    ruckig::ruckig
 )
 target_compile_options(
     motion_planner_commons

@@ -21,6 +21,9 @@
   <depend>inverse_msgs</depend>
   <depend>tf2_ros</depend>
 
+  <build_depend>ruckig</build_depend>
+  <exec_depend>ruckig</exec_depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>
