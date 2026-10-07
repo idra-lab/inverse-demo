@@ -13,6 +13,7 @@ class ProfiledPtpMotion : public Motion {
 public:
     static constexpr double default_max_angular_velocity        = 0.15;
     static constexpr double default_acceleration_ramp_time      = 2.0;
+    static constexpr double default_jerk_ramp_time               = 0.1;
     static constexpr double default_max_normalized_acceleration = 1.0;
 
     ProfiledPtpMotion(

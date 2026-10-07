@@ -84,7 +84,9 @@ struct ProfiledPtpMotion::PathProgress {
                 ProfiledPtpMotion::default_max_normalized_acceleration
         );
 
-        input.max_jerk[0] = std::numeric_limits<double>::infinity();
+        // Ruckig 0.9 requires finite jerk to compute a position trajectory.
+        input.max_jerk[0] = input.max_acceleration[0]
+                           / ProfiledPtpMotion::default_jerk_ramp_time;
     }
 
     MDV_NODISCARD double
