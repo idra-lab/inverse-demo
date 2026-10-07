@@ -50,6 +50,46 @@ def publish_poses(context, *args, **kwargs):
             [-0.053, 0.404, 0.485],
             [-0.572, 0.820, 0.018, -0.003],
         ),
+        "obs(bus_bar)": (
+            [-0.196, 0.386, 0.131],
+            [-0.576, 0.740, -0.188, -0.290],
+        ),
+        "via(bus_bar)": (
+            [-0.104, 0.527, 0.350],
+            [-0.662, 0.747, 0.047, -0.041],
+        ),
+        "obs(bus_bar_caps)": (
+            [-0.196, 0.386, 0.131],
+            [-0.576, 0.740, -0.188, -0.290],
+        ),
+        "via(bus_bar_caps)": (
+            [-0.104, 0.527, 0.350],
+            [-0.662, 0.747, 0.047, -0.041],
+        ),
+        "via(rear_connector)": (
+            [0.308, 0.492, 0.314],
+            [-0.603, 0.798, -0.004, 0.005],
+        ),
+        "via(front_connector)": (
+            [0.613, 0.340, 0.274],
+            [0.110, 0.994, -0.000, 0.025],
+        ),
+        "obs(front_connector)": (
+            [0.375, 0.457, 0.187],
+            [-0.071, -0.724, -0.086, 0.681],
+        ),
+        "obs(rear_connector)": (
+            [0.468, 0.393, 0.153],
+            [0.710, -0.364, 0.541, 0.266],
+        ),
+        "via(connector_caps)": (
+            [0.613, 0.340, 0.274],
+            [0.110, 0.994, -0.000, 0.025],
+        ),
+        "obs(connector_caps)": (
+            [0.375, 0.457, 0.187],
+            [-0.071, -0.724, -0.086, 0.681],
+        ),
         # "kit1_connector_grasp": (
         #     [-0.084515, 0.9086, -0.036295 + Z_OFFSET],
         #     [0.0, 1.0, 0.0, 0.0],
@@ -80,7 +120,7 @@ def publish_poses(context, *args, **kwargs):
         node = Node(
             package="tf2_ros",
             executable="static_transform_publisher",
-            name=f"static_broadcaster_{frame_name}",
+            name=f"static_broadcaster_{frame_name.replace('(','_').replace(')','_')}",
             arguments=[
                 str(translation[0]),
                 str(translation[1]),
@@ -212,14 +252,14 @@ def launch_setup(context, *args, **kwargs):
     )
     nodes_to_start += [
         ur_launch,
-        TimerAction(
-            period=8.0,
-            actions=[motion_planner_node, skill_learner_node],
-        ),
-        TimerAction(
-            period=10.0,
-            actions=[enable_planner, homing_motion],
-        ),
+        # TimerAction(
+        #     period=8.0,
+        #     actions=[motion_planner_node, skill_learner_node],
+        # ),
+        # TimerAction(
+        #     period=10.0,
+        #     actions=[enable_planner, homing_motion],
+        # ),
     ]
     return nodes_to_start
 
@@ -238,5 +278,5 @@ def generate_launch_description():
         declared_arguments
         + [OpaqueFunction(function=launch_setup)]
         + [OpaqueFunction(function=publish_poses)]
-        + [OpaqueFunction(function=launch_realsense)]
+        # + [OpaqueFunction(function=launch_realsense)]
     )
