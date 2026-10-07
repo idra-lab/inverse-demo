@@ -42,6 +42,7 @@ install(TARGETS ${PROJECT_NAME} EXPORT export_${PROJECT_NAME}
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
 install(FILES README.md DESTINATION share/${PROJECT_NAME})
+install(PROGRAMS scripts/sine_velocity_test.py DESTINATION lib/${PROJECT_NAME})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   controller_interface Eigen3 geometry_msgs hardware_interface inverse_msgs
@@ -52,5 +53,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(test_kinematics test/test_kinematics.cpp)
   target_link_libraries(test_kinematics ${PROJECT_NAME})
+  ament_add_gtest(test_controller_init test/test_controller_init.cpp)
+  target_link_libraries(test_controller_init ${PROJECT_NAME})
 endif()
 ament_package()
