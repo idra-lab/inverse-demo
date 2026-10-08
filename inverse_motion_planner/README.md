@@ -1,57 +1,61 @@
-# Magician Motion Planner
+# Inverse Motion Planner
 
-Implementation of a motion planner to be used within the context of the MAGICIAN framework.
-
-docs here https://github.com/magician-project/magician_documentation/blob/main/tests/motion-planner.md
+Implementation of a motion planner to be used within the context of the INVERSE framework.
 
 ## Parameters
 
 - `base_link`: base link w.r.t. which poses are broadcasted;
 - `ee_link`: end-effector link whose motion shall be controlled;
-- `ft_link`: link where the force-torque sensor data are displayed into; necessary only if using the _fake_ admittance control;
-- `ft_topic`: ROS2 topic name with type `geometry_msgs/msg/WrenchStamped` where the force torque data are retrieved;
-- `proportional_gain` and `integral_gain`: while using admittance control, the displacement $\delta z(t)$ along the $z$ axis of the end-effector is (roughly) given by the law 
-  $$ \delta z(t) = k_p \big(f_{des}(t) - f_{meas}(t)\big) + k_i \int_0^t k_p \big(f_{des}(\tau) - f_{meas}(\tau)\big) \, dt $$
-  In this equation $k_p$ is the `proportional_gain`, while $k_i$ is the `integral_gain`;
-- `integral_bound` and `integral_velocity_bound`: actually, the integrator of the above equation has two bounds: one on the maximum displacement $\delta z_i$ that the integrator can generate (`integral_bound` in _m_), and one on its maximum rate of change $\dot{\delta z_i}$ (`integral_velocity_bound` in _m/s_);
-
+- `frame_topic_name`: name of topic in which the the reference shall be broadcasted onto;
 
 ## Services
 
-- `/motion_planner/set_broadcast_state` (type `std_srvs/srv/SetBool`): set wether the reference computed by the planner shall be broadcasted to the low-level controller or not;
-- `motion_planner/safe_stop` (type `std_srvs/srv/Trigger`): triggers the immediate stopping of the robot;
-- `/motion_planner/reach_position` (type `magician_msgs/srv/ReachPosition`): service that commands the robot to reach a given position;
-- `/motion_planner/execute_ptp_motion` (type `magician_msgs/srv/PointToPointMotion`): service that performs a point-to-point motion within two arbitrary points;
-- `/motion_planner/execute_mesh_ptp_motion` (type `magician_msgs/srv/MeshPointToPointMotion`): service that performs a point-to-point motion within two arbitrary points which are projected on a specified mesh;
-- `/motion_planner/hold_position` (type `magician_msgs/srv/HoldPosition`): a simple motion primitives that stays in a point for a given amount of seconds;
-- `/motion_planner/ptp_time_estimate` (type `magician_msgs/srv/PointToPointTime`): provides the time-transition matrix for reaching some poses;
+- `/set_broadcast_state` (type `std_srvs/srv/SetBool`): set wether the reference computed by the planner shall be broadcasted to the low-level controller or not;
+- `/safe_stop` (type `std_srvs/srv/Trigger`): triggers the immediate stopping of the robot;
+- `/reach_position` (type `magician_msgs/srv/ReachPosition`): service that commands the robot to reach a given position;
+- `/execute_ptp_motion` (type `magician_msgs/srv/PointToPointMotion`): service that performs a point-to-point motion within two arbitrary points;
+- `/pick` (type `magician_msgs/srv/EnqueueTrigger`): service that enqueues a motion to close the gripper;
+- `/place` (type `magician_msgs/srv/EnqueueTrigger`): service that enqueues a motion to open the gripper;
 
-## Move to a TF frame
 
-After building and sourcing the workspace, enqueue a target pose with:
+## Utility scripts
 
-```bash
-ros2 run inverse_motion_planner reach_frame homing
-ros2 run inverse_motion_planner reach_frame bus_bar --velocity 0.08
-```
+### Open/close gripper
 
-The script calls `/reach_position` (`inverse_msgs/srv/ReachPosition`) with a
-default velocity of **0.05 m/s**. It uses the named frame if it exists;
-otherwise, it requires both `via(name)` and `obs(name)` and queues them in that
-order. Both fallback frame names are checked before sending any request. Each
-request specifies an identity pose in the selected frame; the planner handles
-transform lookup and validity. The script does not look up poses. Existing
-queued motions are preserved. Reference broadcasting must be enabled for motion.
+1. Ensure the planner is enabled:
+   ```bash
+   ros2 service call /set_broadcast_state std_srvs/srv/SetBool "data: true"
+   ```
+1. Call the corresponding service (pick in this case):
+   ```bash
+   ros2 service call /place inverse_msgs/srv/EnqueueTrigger "{}"
+   ```
+1. (optional) Disable the planner broadcasting state:
+   ```bash
+   ros2 service call /set_broadcast_state std_srvs/srv/SetBool "data: false"
+   ```
 
-Use `--service NAME` for a namespaced service, and `--timeout SECONDS` to change the
-TF discovery/service timeout (default: 5 seconds). Quote explicit frame names
-containing parentheses, e.g. `'obs(bus_bar)'`.
+### Move to a TF frame
 
-Targets are pose snapshots, not continuously tracked frames. Success means
-**queued**, not completed, and TF availability does not guarantee collision
-safety or reachability. The two fallback requests are not atomic: if the second
-fails, the first remains queued. A service timeout may also leave a request queued;
-check the planner before retrying.
+To avoid fully specifying the `/reach_position` service call from the CLI, this package expose the `reach_frame` utility script.
+For example:
+
+- To go to `homing` reference frame with default speed of 0.05m/s speed
+  ```bash
+  ros2 run inverse_motion_planner reach_frame homing
+  ```
+- Go to `homing` with a specified speed (in m/s)
+  ```bash
+  ros2 run inverse_motion_planner reach_frame bus_bar --velocity 0.08
+  ```
+
+**Notes**:
+
+- The script internally starts a ROS 2 node that listens for TF trees. If the reference frame is not found, try to increase the discovery time by specifying a `--timeout DURATION_S` option (defaults to 2s).
+- The script is *smart*: for example, if `front_connector` does not exists as a standalone frame, but `via(front_connector)` and `obs(front_connector)` both exists, then the planner will enqueue 2 separate motions:
+  ```
+  current config -> via(desired_frame) -> obs(desired_frame)
+  ```
 
 ## Queued gripper primitives
 
