@@ -28,7 +28,7 @@ Implementation of a motion planner to be used within the context of the INVERSE 
    ```
 1. Call the corresponding service (pick in this case):
    ```bash
-   ros2 service call /place inverse_msgs/srv/EnqueueTrigger "{}"
+   ros2 service call /pick inverse_msgs/srv/EnqueueTrigger "{}"
    ```
 1. (optional) Disable the planner broadcasting state:
    ```bash
