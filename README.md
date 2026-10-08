@@ -106,6 +106,52 @@ To record the a human skill (DMP based) that then can be executed by the robot:
 When learning, only 1 trajectory of the robot is actually recorded. The recorded pose is the one of a TF2 transform of the frame specified in the [`node_parameters.yaml`](./inverse_bringup/config/node_parameters.yaml) file, specifically in the [arguments for the `skill_learner` node](https://github.com/idra-lab/inverse-demo/blob/faac88be8ce0415ba8300680b065f9e9fffc180c/inverse_bringup/config/parameters.yaml#L23-L30).
 For the setup with UR, the `tool0` frame is reference to the TCP of the robot.
 
+### Skill reproduction
+
+1. Start the robot:
+   ```bash
+   ros2 launch inverse_bringup inverse_ur.launch.py
+   ```
+1. Once the motion planner is activated, you can trigger skill execution with the following service:
+   ```bash
+   ros2 service call /execute_skill inverse_msgs/srv/ExecuteSkill "skill_name: 'test_skill'
+   use_learned_initial_pose: true
+   use_learned_final_pose: true
+   initial_pose:
+     header:
+       stamp:
+         sec: 0
+         nanosec: 0
+       frame_id: ''
+     pose:
+       position:
+         x: 0.0
+         y: 0.0
+         z: 0.0
+       orientation:
+         x: 0.0
+         y: 0.0
+         z: 0.0
+         w: 1.0
+   final_pose:
+     header:
+       stamp:
+         sec: 0
+         nanosec: 0
+       frame_id: ''
+     pose:
+       position:
+         x: 0.0
+         y: 0.0
+         z: 0.0
+       orientation:
+         x: 0.0
+         y: 0.0
+         z: 0.0
+         w: 1.0
+   max_vel: 0.05"
+   ```
+
 # CRF Setup
 
 ## Network configuration
