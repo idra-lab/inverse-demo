@@ -44,6 +44,7 @@ def declare_args():
                 "joint_trajectory_controller",
                 "cartesian_force_controller",
                 "cartesian_velocity_controller",
+                "freedrive_mode_controller",
             ],
         )
     )
@@ -90,6 +91,7 @@ def launch_setup(context, *args, **kwargs):
         print_reset,
     )
 
+    controller = LaunchConfiguration("ctrl").perform(context)
     base_launch_arguments={
         "ur_type": LaunchConfiguration("ur_type"),
         "robot_ip": LaunchConfiguration("robot_ip"),
@@ -104,6 +106,11 @@ def launch_setup(context, *args, **kwargs):
         "activate_joint_controller": "false",
         # "initial_joint_controller": "joint_trajectory_controller",
     }
+    # Freedrive is already spawned by the base launch; activate it there to
+    # avoid racing an inactive spawner against a second, active spawner.
+    if controller == "freedrive_mode_controller":
+        base_launch_arguments["initial_joint_controller"] = controller
+        base_launch_arguments["activate_joint_controller"] = "true"
 
     this_package_share = get_package_share_path("easy_ur_control")
     calibration_file = os.path.join(this_package_share, "config", "calibration.yaml")
@@ -130,7 +137,6 @@ def launch_setup(context, *args, **kwargs):
         arguments=["-d", LaunchConfiguration("rviz_config")],
         condition=IfCondition(LaunchConfiguration("rviz")),
     )
-    controller = LaunchConfiguration("ctrl").perform(context)
     spawner_arguments = [controller, "-c", "/controller_manager"]
     # The experimental velocity controller requires explicit operator activation.
     if controller == "cartesian_velocity_controller":
@@ -141,11 +147,11 @@ def launch_setup(context, *args, **kwargs):
         arguments=spawner_arguments,
     )
 
-    return [
-        base_launch,
-        controller_spawner,
-        rviz_spawner,
-    ]
+    nodes_to_start = [base_launch]
+    if controller != "freedrive_mode_controller":
+        nodes_to_start.append(controller_spawner)
+    nodes_to_start.append(rviz_spawner)
+    return nodes_to_start
 
 
 def generate_launch_description():
