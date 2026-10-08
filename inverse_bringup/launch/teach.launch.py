@@ -39,9 +39,7 @@ import rclpy
 from rclpy.node import Node as RclpyNode
 from std_msgs.msg import Bool
 from threading import Thread
-from builtin_interfaces.msg import Duration 
 import time
-from controller_manager_msgs.srv import SwitchController
 
 # --- funzione per avviare un publisher in background ---
 def start_freedrive_publisher():
@@ -62,35 +60,6 @@ def start_freedrive_publisher():
     thread.start()
 
 
-# --- funzione per cambiare controller in modo programmatico ---
-def switch_controllers(deactivate: list, activate: list):
-    # Inizializza un nodo temporaneo per il servizio
-    if not rclpy.ok():
-        rclpy.init()
-    node = RclpyNode("controller_switcher_inline")
-
-    cli = node.create_client(SwitchController, '/controller_manager/switch_controller')
-    while not cli.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info("Waiting for switch_controller service...")
-
-    req = SwitchController.Request()
-    req.start_controllers = activate
-    req.stop_controllers = deactivate
-    req.strictness = SwitchController.Request.STRICT  # STRICT=2, BEST_EFFORT=1
-    req.start_asap = True
-    req.timeout = Duration(sec=5, nanosec=0)  # <-- correggi così
-
-    future = cli.call_async(req)
-    rclpy.spin_until_future_complete(node, future)
-
-    if future.result() is not None:
-        node.get_logger().info(f"Switch result: {future.result().ok}")
-    else:
-        node.get_logger().error("Failed to call switch_controller service")
-
-    node.destroy_node()
-
-
 # --- funzione chiamata dal launch file ---
 def launch_setup(context, *args, **kwargs):
 
@@ -105,7 +74,7 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             "ur_type": "ur10",
             "robot_ip": "192.168.3.2", # to check
-            "ctrl": "cartesian_motion_controller",
+            "ctrl": "freedrive_mode_controller",
             "use_fake_hardware": "false",
         }.items(),
     )
@@ -126,18 +95,6 @@ def launch_setup(context, *args, **kwargs):
 
     # --- publisher inline per abilitare il freedrive mode ---
     start_freedrive_publisher()
-
-    # --- switch controller solo dopo che tutto è pronto ---
-    def switch_after_startup():
-        # aspetta qualche secondo per essere sicuro che il controller_manager sia online
-        time.sleep(5.0)
-        # esempio: disattiva cartesian_motion_controller, attiva freedrive_mode_controller
-        switch_controllers(
-            deactivate=['cartesian_motion_controller'],
-            activate=['freedrive_mode_controller']
-        )
-
-    Thread(target=switch_after_startup, daemon=True).start()
 
     nodes_to_start = [
         ur_launch,
