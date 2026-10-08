@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Publish whether any tracked SMPL joint is too close to a target.
+"""Publish whether the tracked body is too close to one or more target frames.
 
-use_goal_pose false (default): the target is the origin of aruco_frame.
-use_goal_pose true:  the target is the position of the latest PoseStamped on
-                     goal_topic, in its own header.frame_id; it can change at
-                     any time (orientation is ignored).
+use_obs_frames false (default): one target, "bus_bar" at the origin of aruco_frame.
+use_obs_frames true:  one target per name in obs_objects, at the origin of the
+                      TF frame "obs(<name>)" (e.g. obs(bus_bar)).
+
+For each target the distance is the one of the nearest SMPL joint. The state of
+all targets is published as one std_msgs/String, e.g.
+    "-bus_bar.free, front_connector.free, rear_connector.free"
+where "<name>.free" means the body is away and "-<name>.free" means it is too
+close or the state is unknown.
 """
 
 import numpy as np
 import rclpy
-from geometry_msgs.msg import PoseStamped
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.time import Duration, Time
-from std_msgs.msg import Bool, Float64, String
+from std_msgs.msg import Float64, String
 from tf2_ros import Buffer, TransformException, TransformListener
 from visualization_msgs.msg import Marker, MarkerArray
 
@@ -31,6 +35,9 @@ SMPL_JOINT_NAMES = [
 ]
 # Joints published by SMPLRviz::publish_upper_body, in marker point order
 UPPER_BODY = [0, 3, 6, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+NEAR_DISTANCE = 0.20
+CLEAR_DISTANCE = 0.25
 
 
 def quaternion_to_rotation(x, y, z, w):
@@ -55,75 +62,45 @@ class BodyProximityMonitor(Node):
     def __init__(self):
         super().__init__("body_proximity_monitor")
         # Hysteresis: "near" below near_distance, "clear" again only above clear_distance
-        self.near_distance = self.declare_parameter("near_distance", 0.20).value
-        self.clear_distance = self.declare_parameter("clear_distance", 0.25).value
+        self.near_distance = self.declare_parameter("near_distance", NEAR_DISTANCE).value
+        self.clear_distance = self.declare_parameter("clear_distance", CLEAR_DISTANCE).value
         # No body detection for this long -> report near (unknown is unsafe)
         self.stale_timeout = self.declare_parameter("stale_timeout", 0.5).value
         if not 0.0 < self.near_distance <= self.clear_distance:
             raise ValueError("Require 0 < near_distance <= clear_distance")
-        self.use_goal_pose = self.declare_parameter("use_goal_pose", False).value
-        goal_topic = self.declare_parameter("goal_topic", "/goal_pose").value
-        # 0 = a goal stays valid until replaced (e.g. one-shot RViz goals)
-        self.goal_timeout = self.declare_parameter("goal_timeout", 0.0).value
-        # A goal moving more than this counts as a new target: re-evaluate from unsafe
-        self.goal_reset_distance = self.declare_parameter("goal_reset_distance", 0.05).value
+        use_obs_frames = self.declare_parameter("use_obs_frames", False).value
+        obs_objects = self.declare_parameter(
+            "obs_objects", ["bus_bar", "front_connector", "rear_connector"]
+        ).value
+
+        # Targets as (name, TF frame); the target is the origin of its frame
+        if use_obs_frames:
+            self.targets = [(name, f"obs({name})") for name in obs_objects]
+            state_topic = "/seed_ur10_services/stream"
+            self.distance_pub = self.create_publisher(Float64, "/body_obs_distance", 10)
+            self.joint_pub = self.create_publisher(String, "/body_nearest_joint_obs", 10)
+        else:
+            self.targets = [("bus_bar", TARGET_FRAME)]
+            state_topic = "/body_near_aruco"
+            self.distance_pub = self.create_publisher(Float64, "/body_aruco_distance", 10)
+            self.joint_pub = self.create_publisher(String, "/body_nearest_joint", 10)
+        if not self.targets:
+            raise ValueError("No targets to monitor")
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-        if self.use_goal_pose:
-            self.target_name = goal_topic
-            self.near_pub = self.create_publisher(Bool, "/body_near_goal", 10)
-            self.distance_pub = self.create_publisher(Float64, "/body_goal_distance", 10)
-            self.joint_pub = self.create_publisher(String, "/body_nearest_joint_goal", 10)
-            self.create_subscription(PoseStamped, goal_topic, self.on_goal, 10)
-        else:
-            self.target_name = TARGET_FRAME
-            self.near_pub = self.create_publisher(Bool, "/body_near_aruco", 10)
-            self.distance_pub = self.create_publisher(Float64, "/body_aruco_distance", 10)
-            self.joint_pub = self.create_publisher(String, "/body_nearest_joint", 10)
-        self.goal = None  # (frame_id, position) of the latest goal
-        self.goal_received = None
+        self.state_pub = self.create_publisher(String, state_topic, 10)
         self.create_subscription(MarkerArray, MARKER_TOPIC, self.on_markers, 10)
         self.create_timer(0.1, self.check_stale)
 
-        self.near = True  # unsafe until the first valid measurement
-        self.last_measurement = None
+        # Unsafe until the first valid measurement of each target
+        self.near = {name: True for name, _ in self.targets}
+        self.last_measurement = {name: None for name, _ in self.targets}
         self.get_logger().info(
-            f"Monitoring {MARKER_TOPIC} vs {self.target_name}: near < {self.near_distance:.2f} m, "
-            f"clear > {self.clear_distance:.2f} m, stale after {self.stale_timeout:.1f} s"
+            f"Monitoring {MARKER_TOPIC} vs {[frame for _, frame in self.targets]}: "
+            f"near < {self.near_distance:.2f} m, clear > {self.clear_distance:.2f} m, "
+            f"stale after {self.stale_timeout:.1f} s, state on {state_topic}"
         )
-
-    def on_goal(self, msg: PoseStamped):
-        if not msg.header.frame_id:
-            self.get_logger().error("Ignoring goal with empty frame_id", throttle_duration_sec=5.0)
-            return
-        position = np.array([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
-        moved = (self.goal is None
-                 or self.goal[0] != msg.header.frame_id
-                 or np.linalg.norm(position - self.goal[1]) > self.goal_reset_distance)
-        self.goal = (msg.header.frame_id, position)
-        self.goal_received = self.get_clock().now()
-        if moved:
-            self.get_logger().info(
-                f"New goal in {msg.header.frame_id}: {np.round(position, 3).tolist()}"
-            )
-            if not self.near:
-                self.set_near(True, "New goal: re-evaluating distance")
-
-    def current_target(self):
-        """(frame, position) of the target, or None if there is no valid one."""
-        if not self.use_goal_pose:
-            return TARGET_FRAME, np.zeros(3)
-        if self.goal is None:
-            self.get_logger().warning(
-                f"No goal received on {self.target_name} yet", throttle_duration_sec=5.0
-            )
-            return None
-        if (self.goal_timeout > 0.0
-                and self.get_clock().now() - self.goal_received > Duration(seconds=self.goal_timeout)):
-            self.get_logger().warning("Goal expired", throttle_duration_sec=5.0)
-            return None
-        return self.goal
 
     def on_markers(self, msg: MarkerArray):
         # The joints are the SPHERE_LIST marker (the LINE_LIST is the skeleton)
@@ -137,54 +114,66 @@ class BodyProximityMonitor(Node):
         if not valid.any():
             return
 
-        # No valid target: skip, the stale check then reports near
-        target = self.current_target()
-        if target is None:
+        now = self.get_clock().now()
+        overall = None  # (distance, joint) of the nearest joint over all targets
+        for name, frame in self.targets:
+            try:
+                # Latest available transform (the target frames are static)
+                tf = self.tf_buffer.lookup_transform(frame, joints.header.frame_id, Time())
+            except TransformException as exc:
+                # Not measured: this target goes stale, so it reports near
+                self.get_logger().warning(
+                    f"No TF {joints.header.frame_id} -> {frame} yet: {exc}",
+                    throttle_duration_sec=5.0,
+                )
+                continue
+
+            q = tf.transform.rotation
+            t = tf.transform.translation
+            rotation = quaternion_to_rotation(q.x, q.y, q.z, q.w)
+            # Joints in the target frame: the target is the origin, so the norm is the distance
+            points_target = points @ rotation.T + np.array([t.x, t.y, t.z])
+            distances = np.linalg.norm(points_target, axis=1)
+            distances[~valid] = np.inf
+            nearest = int(np.argmin(distances))
+            distance = float(distances[nearest])
+            joint = joint_name(nearest, len(points))
+
+            if self.near[name] and distance > self.clear_distance:
+                self.set_near(name, False, f"Body clear of {frame} (nearest: {joint} at {distance:.3f} m)")
+            elif not self.near[name] and distance < self.near_distance:
+                self.set_near(name, True, f"{joint} too close to {frame} ({distance:.3f} m)")
+            self.last_measurement[name] = now
+            if overall is None or distance < overall[0]:
+                overall = (distance, joint)
+
+        if overall is None:
             return
-        target_frame, target_position = target
-
-        try:
-            # Latest available transform (the camera is static in the target frame)
-            tf = self.tf_buffer.lookup_transform(target_frame, joints.header.frame_id, Time())
-        except TransformException as exc:
-            self.get_logger().warning(
-                f"No TF {joints.header.frame_id} -> {target_frame} yet: {exc}",
-                throttle_duration_sec=5.0,
-            )
-            return
-
-        q = tf.transform.rotation
-        t = tf.transform.translation
-        rotation = quaternion_to_rotation(q.x, q.y, q.z, q.w)
-        # Joints in the target frame, then distance to the target position
-        points_target = points @ rotation.T + np.array([t.x, t.y, t.z])
-        distances = np.linalg.norm(points_target - target_position, axis=1)
-        distances[~valid] = np.inf
-        nearest = int(np.argmin(distances))
-        distance = float(distances[nearest])
-        name = joint_name(nearest, len(points))
-
-        if self.near and distance > self.clear_distance:
-            self.set_near(False, f"Body clear of target (nearest: {name} at {distance:.3f} m)")
-        elif not self.near and distance < self.near_distance:
-            self.set_near(True, f"{name} too close to target ({distance:.3f} m)")
-
-        self.last_measurement = self.get_clock().now()
-        self.distance_pub.publish(Float64(data=distance))
-        self.joint_pub.publish(String(data=name))
-        self.near_pub.publish(Bool(data=self.near))
+        self.distance_pub.publish(Float64(data=overall[0]))
+        self.joint_pub.publish(String(data=overall[1]))
+        self.publish_state()
 
     def check_stale(self):
         now = self.get_clock().now()
-        if (self.last_measurement is not None
-                and now - self.last_measurement < Duration(seconds=self.stale_timeout)):
+        stale = [
+            name for name, last in self.last_measurement.items()
+            if last is None or now - last >= Duration(seconds=self.stale_timeout)
+        ]
+        if not stale:
             return
-        if not self.near:
-            self.set_near(True, "No recent measurement (body or goal missing): assuming too close")
-        self.near_pub.publish(Bool(data=True))
+        for name in stale:
+            if not self.near[name]:
+                self.set_near(name, True, f"No recent measurement for {name}: assuming too close")
+        self.publish_state()
 
-    def set_near(self, near, reason):
-        self.near = near
+    def publish_state(self):
+        state = ", ".join(
+            f"-{name}.free" if self.near[name] else f"{name}.free" for name, _ in self.targets
+        )
+        self.state_pub.publish(String(data=state))
+
+    def set_near(self, name, near, reason):
+        self.near[name] = near
         if near:
             self.get_logger().warning(reason)
         else:

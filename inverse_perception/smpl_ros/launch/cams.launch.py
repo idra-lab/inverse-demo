@@ -20,10 +20,10 @@ def generate_launch_description():
         default_value="zed_camera_1_frame",
         description="TF frame id for the first camera",
     )
-    goal_pose_arg = DeclareLaunchArgument(
-        "goal_pose",
+    obs_frames_arg = DeclareLaunchArgument(
+        "obs_frames",
         default_value="false",
-        description="Body proximity target: true = latest /goal_pose, false = aruco_frame",
+        description="Body proximity targets: true = obs(bus_bar), obs(front_connector), obs(rear_connector) TF frames; false = aruco_frame",
     )
 
     # ------------------------------------------------------------------ #
@@ -105,8 +105,8 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "use_goal_pose": ParameterValue(
-                    LaunchConfiguration("goal_pose"), value_type=bool
+                "use_obs_frames": ParameterValue(
+                    LaunchConfiguration("obs_frames"), value_type=bool
                 ),
                 "near_distance": 0.20,
                 "clear_distance": 0.25,
@@ -126,7 +126,7 @@ def generate_launch_description():
         [
             cam_serial_arg,
             cam_frame_arg,
-            goal_pose_arg,
+            obs_frames_arg,
             camera_node,
             depth_republish_cam,
             aruco_node,
