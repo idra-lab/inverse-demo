@@ -15,8 +15,8 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 add_compile_options(-Werror)
 
 
-list(APPEND CMAKE_PREFIX_PATH "..//mdv_cpp_lib/cmake/install/rerun_sdk")
-find_package(rerun_sdk REQUIRED)
+# list(APPEND CMAKE_PREFIX_PATH "..//mdv_cpp_lib/cmake/install/rerun_sdk")
+# find_package(rerun_sdk REQUIRED)
 
 macro(find_and_log_required package)
     find_package(${package} REQUIRED)
