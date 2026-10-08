@@ -1,0 +1,14 @@
+spacemouse:
+  ros__parameters:
+    device: ""                # empty = auto-detect, or e.g. /dev/hidraw5
+    frame_id: base_link       # Joy header only
+    publish_rate: 200.0
+    full_scale: 350.0         # raw HID counts at full deflection
+    deadzone: 0.05            # fraction of full scale
+    max_linear: 0.1           # m/s at full deflection
+    max_angular: 0.5          # rad/s at full deflection
+    # output [lin x, lin y, lin z, ang x, ang y, ang z] = axis_sign[i] * raw[axis_map[i]]
+    # raw order: [x, y, z, rx, ry, rz] in the HID frame (x right, y toward user, z down)
+    axis_map: [1, 0, 2, 4, 3, 5]
+    axis_sign: [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+    num_buttons: 2

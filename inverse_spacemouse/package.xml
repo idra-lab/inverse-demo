@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>inverse_spacemouse</name>
+  <version>0.1.0</version>
+  <description>Reads a 3Dconnexion SpaceMouse over Linux hidraw and publishes it as inverse_msgs/CartesianTrajectoryPoint velocity commands and sensor_msgs/Joy.</description>
+  <maintainer email="victor.kowalski.m@gmail.com">Victor Kowalski</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>inverse_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
