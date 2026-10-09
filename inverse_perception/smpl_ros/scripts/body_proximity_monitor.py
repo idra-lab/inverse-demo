@@ -194,6 +194,7 @@ class BodyProximityMonitor(Node):
                 )
                 continue
 
+
             q = tf.transform.rotation
             t = tf.transform.translation
             rotation = quaternion_to_rotation(q.x, q.y, q.z, q.w)
