@@ -126,6 +126,9 @@ int main(int argc, char **argv)
   auto right_hand_pub =
       node->create_publisher<geometry_msgs::msg::PointStamped>(
           "smpl/right_hand", 10);
+  auto right_elbow_pub =
+      node->create_publisher<geometry_msgs::msg::PointStamped>(
+          "smpl/right_elbow", 10);
   tf2_ros::TransformBroadcaster joint_tf_broadcaster(node);
 
   SMPLRviz rviz(node, frame_id);
@@ -278,7 +281,7 @@ int main(int argc, char **argv)
       // Single-joint positions, same frame and stamp as the markers,
       // published as PointStamped and as TF frame_id -> joint_frame
       // (position only, identity rotation).
-      // SMPL indices: 0 = pelvis, 23 = right_hand
+      // SMPL indices: 0 = pelvis, 19 = right_elbow, 23 = right_hand
       auto publish_joint = [&](const auto &pub, int smpl_idx,
                                const std::string &joint_frame)
       {
@@ -304,6 +307,7 @@ int main(int argc, char **argv)
         joint_tf_broadcaster.sendTransform(tf);
       };
       publish_joint(pelvis_pub, 0, "pelvis");
+      publish_joint(right_elbow_pub, 19, "right_elbow");
       publish_joint(right_hand_pub, 23, "right_hand");
 
       auto bodies_out = extractBodyData({bodies.body_list[0]}, SMPL_TO_ZED);
